@@ -11,7 +11,7 @@
 
 ## Progress checklist
 
-- [ ] **Step 1** — Repository scaffolding, tooling, and local-services runbook
+- [x] **Step 1** — Repository scaffolding, tooling, and local-services runbook — _committed as `72cbca5` on 2026-05-07_
 - [ ] **Step 2** — Browser mic publishes to local LiveKit; agent echoes liveness to a data channel
 - [ ] **Step 3** — In-process `faster-whisper` STT emits live transcripts to the UI
 - [ ] **Step 4** — Session lifecycle (start/stop), 3-script library, and UI shell
