@@ -2,14 +2,17 @@ import { LiveKitRoom, RoomAudioRenderer } from "@livekit/components-react";
 import "@livekit/components-styles";
 
 import DebugPane from "./DebugPane";
+import MetricsBar from "./MetricsBar";
+import TranscriptPane from "./TranscriptPane";
 
 /**
- * App — Step 2 scaffold.
+ * App — Step 5 scaffold.
  *
- * Wraps the app in a LiveKitRoom, publishes the rep's microphone, and mounts
- * the DebugPane which displays incoming liveness heartbeats from the Python
- * agent. Step 3 will swap the DebugPane for a real TranscriptPane; Steps 4+
- * layer in scripts, metrics, nudges, and the download flow.
+ * Publishes the rep's mic into a local LiveKit room and mounts three panes:
+ *  - MetricsBar: live coaching counters (fillers, pacing, prohibited, sentiment)
+ *  - TranscriptPane: live partial + final transcripts from the agent's
+ *    Whisper STT
+ *  - DebugPane: agent liveness heartbeat (useful when debugging)
  */
 export default function App() {
   const url = import.meta.env.VITE_LIVEKIT_URL as string | undefined;
@@ -38,8 +41,8 @@ export default function App() {
       <div style={cardStyle}>
         <h1 style={{ margin: 0 }}>Customer Service AI Coach — v0</h1>
         <p style={{ marginTop: "0.5rem", opacity: 0.7 }}>
-          Step 2 scaffold. Mic publishes into the local LiveKit room; the agent echoes liveness
-          heartbeats below.
+          Step 5 scaffold. Mic publishes into the local LiveKit room; the agent transcribes
+          with <code>faster-whisper</code> and runs tight-lane coaching detectors.
         </p>
         <LiveKitRoom
           token={token}
@@ -51,6 +54,8 @@ export default function App() {
           onError={(e) => console.error("LiveKit connection error:", e)}
         >
           <RoomAudioRenderer />
+          <MetricsBar />
+          <TranscriptPane />
           <DebugPane />
         </LiveKitRoom>
       </div>
@@ -72,7 +77,7 @@ const cardStyle: React.CSSProperties = {
   padding: "2rem",
   borderRadius: "12px",
   background: "rgba(255,255,255,0.03)",
-  maxWidth: "640px",
+  maxWidth: "720px",
   width: "100%",
   boxShadow: "0 1px 2px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.06)",
 };
