@@ -4,6 +4,9 @@
 **Status:** Design — reviewed 2026-05-07
 **Repository target:** <https://github.com/Akash1684/customer-service-ai-coach>
 
+> ⚠️ **Historical planning artifact.**
+> This document captures the design **as planned before implementation**. Several decisions have since been revised during coding — notably Silero-driven turn detection (no custom RMS heuristic), the sliding-window STT buffer, the hallucination guard, and the P0 scope no longer including Ollama/LLM features. For the **current implementation**, see [`docs/AS-BUILT.md`](../../AS-BUILT.md).
+
 ---
 
 ## 1. Overview

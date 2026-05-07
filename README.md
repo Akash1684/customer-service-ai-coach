@@ -1,50 +1,49 @@
 # Customer Service AI Coach
 
 > A fully local, browser-based, real-time practice tool for customer service reps.
-> v0.1.0 (P0) — Step 1 scaffold.
+> Current build: `main` — Steps 1, 2, 3, and 5 shipped. Ollama/LLM work (Step 8) deferred out of P0.
 
-Pick a prepared script, click Start, read the rep turns aloud, and receive live coaching feedback (filler words, pacing, dead air, prohibited phrases, sentiment) plus LLM-generated supportive-coach nudges and a downloadable narrative summary — all running locally on your laptop. No cloud, no accounts, no data leaves your machine.
+Speak into your microphone and receive **live coaching feedback** as you talk: a rolling transcript plus four real-time metric tiles (filler words, pacing WPM, prohibited-phrase hits, sentiment) — all running on your laptop. No cloud calls, no accounts, no data leaves your machine.
 
-## Status
+![status badge](https://img.shields.io/badge/status-active%20development-yellow)
 
-This is **Step 1** of a 10-step implementation plan. The scaffolding is in place; no real-time audio, STT, or LLM features yet. See [`docs/planning/implementation/plan.md`](./docs/planning/implementation/plan.md) for the full plan and [`docs/planning/design/detailed-design.md`](./docs/planning/design/detailed-design.md) for the design.
+## What works today
+
+| Capability | Status |
+|---|---|
+| Browser mic → local LiveKit room → Python agent | ✅ |
+| In-process `faster-whisper` STT (`base.en`, int8) | ✅ |
+| Silero-VAD-driven finalization (no custom turn detection) | ✅ |
+| Live partial + final transcripts on the UI | ✅ |
+| Filler / Pacing / Prohibited / Sentiment detectors | ✅ |
+| MetricsBar UI (four live tiles) | ✅ |
+| Whisper-hallucination guard | ✅ |
+| Start/Stop session lifecycle + script library | ⏭ Step 4 |
+| In-session settings UI (thresholds, phrase list) | ⏭ Step 7 |
+| LLM-generated nudges (Ollama) | ⏭ Step 8 (out of P0) |
+| Markdown session report | ⏭ Step 9 |
+| Dead-air detection + endpoint polish | ⏭ Step 6 / 10 |
+
+See [`docs/AS-BUILT.md`](./docs/AS-BUILT.md) for the **implemented** architecture (what's actually in the code), and [`docs/planning/`](./docs/planning/) for the original planning record (rough idea → Q&A → research → design → plan).
 
 ## Prerequisites
 
-| Tool | Used in | Required for Step 1? |
-|---|---|:---:|
-| Python ≥ 3.10 | Agent | ✅ |
-| Node ≥ 20 | Frontend | ✅ |
-| `uv` ([install](https://docs.astral.sh/uv/getting-started/installation/)) | Python package manager for the agent | Recommended — plain `pip` + `venv` also works |
-| `livekit-server` ([install](https://docs.livekit.io/home/self-hosting/local/)) | Local WebRTC SFU | Step 2+ |
-| `lk` ([LiveKit CLI](https://docs.livekit.io/reference/developer-tools/livekit-cli/)) | Dev-token generation | Step 2+ |
-| Ollama ([install](https://ollama.com)) | Local LLM | Step 8+ |
+| Tool | Purpose |
+|---|---|
+| Python ≥ 3.10 | Agent runtime |
+| Node ≥ 20 | UI build (Vite) |
+| `uv` ([install](https://docs.astral.sh/uv/getting-started/installation/)) | Fast Python package manager (fallback: `pip` + `venv`) |
+| `livekit-server` ([install](https://docs.livekit.io/home/self-hosting/local/)) | Local WebRTC SFU |
+| `lk` ([LiveKit CLI](https://docs.livekit.io/reference/developer-tools/livekit-cli/)) | Dev-token generation |
 
-**Install the post-Step-1 tools (macOS):**
+**One-time install on macOS:**
 
 ```bash
-brew install livekit livekit-cli ollama
+brew install livekit livekit-cli
 curl -LsSf https://astral.sh/uv/install.sh | sh   # or: pip install --user uv
 ```
 
-## Layout
-
-```
-customer-service-ai-coach/
-├── agent/                  # Python agent (LiveKit Agents SDK)
-│   ├── pyproject.toml
-│   ├── src/coach_agent/    # Source package
-│   └── tests/              # pytest
-├── coach-ui/               # React + Vite frontend
-│   ├── package.json
-│   └── src/
-├── scripts/
-│   ├── setup.sh            # Install deps (Python + Node)
-│   └── start.sh            # Print run instructions for LiveKit + agent + UI
-├── docs/planning/          # PDD planning artifacts (rough idea, Q&A, research, design, plan)
-├── Makefile                # `make test` runs Python + TS smoke tests
-└── README.md
-```
+Ollama is **not** required — P0 runs entirely without an LLM. It becomes a prerequisite when Step 8 (LLM nudges) lands.
 
 ## Install
 
@@ -52,22 +51,90 @@ customer-service-ai-coach/
 ./scripts/setup.sh
 ```
 
-This installs agent deps (via `uv` if available, else `pip` + `venv`) and runs `npm install` for the UI. It does not pull the Whisper / Ollama / Silero models — those arrive in later steps.
+This installs agent deps (via `uv`, with a `pip` + `venv` fallback) and runs `npm install` for the UI. The `faster-whisper base.en` model (~140 MB) downloads lazily on first agent session into `~/.cache/huggingface/`.
 
-## Run (Step 1 smoke check)
+## Run
+
+You need three panes:
 
 ```bash
-make test                            # runs Python + TS smoke tests
-npm --prefix coach-ui run dev        # serves the bare UI at http://localhost:5173
+# Pane 1 — LiveKit SFU
+livekit-server --dev
+
+# Pane 2 — Python agent
+cd agent
+uv run src/coach_agent/main.py dev
+
+# Pane 3 — UI
+npm --prefix coach-ui run dev
 ```
 
-Visit <http://localhost:5173> → you should see a page titled *"Customer Service AI Coach — v0"*. That's the entirety of the Step 1 deliverable. Real-time audio + STT + UI wire-up arrives in Step 2 and beyond.
+Generate a dev token once (long-lived, 30 days) and drop it in `coach-ui/.env.local`:
+
+```bash
+lk token create \
+  --api-key devkey --api-secret secret \
+  --join --room coach-room --identity rep-local \
+  --valid-for 720h --token-only
+```
+
+```
+# coach-ui/.env.local
+VITE_LIVEKIT_URL=ws://127.0.0.1:7880
+VITE_LIVEKIT_TOKEN=<paste jwt here>
+VITE_LIVEKIT_ROOM=coach-room
+```
+
+Visit <http://localhost:5173>, grant mic permission, and start talking.
+
+## Layout
+
+```
+customer-service-ai-coach/
+├── agent/                              # Python agent (LiveKit Agents SDK)
+│   ├── pyproject.toml
+│   ├── src/coach_agent/
+│   │   ├── main.py                     # Entry point, CoachAgent subclass
+│   │   ├── config.py                   # CoachSettings (defaults)
+│   │   ├── stt/local_whisper.py        # In-process faster-whisper STT
+│   │   ├── detectors/                  # filler · pacing · prohibited · sentiment
+│   │   ├── pipeline/metrics.py         # MetricsSnapshotBuilder (rate-limited)
+│   │   └── transport/liveness.py       # Agent heartbeat (debug channel)
+│   └── tests/                          # 57 unit tests, 2 manual E2E scripts
+├── coach-ui/                           # React + Vite frontend
+│   └── src/
+│       ├── App.tsx                     # Mount LiveKitRoom + panes
+│       ├── TranscriptPane.tsx          # Live partial + final transcripts
+│       ├── MetricsBar.tsx              # Four-tile live metrics
+│       └── DebugPane.tsx               # Agent heartbeat (debug)
+├── scripts/                            # setup.sh, start.sh
+├── docs/
+│   ├── AS-BUILT.md                     # Current architecture (what shipped)
+│   └── planning/                       # PDD planning record (historical)
+├── Makefile                            # make test = Python + TS tests
+└── README.md
+```
+
+## Tests
+
+```bash
+make test            # Python (57) + TypeScript (42)
+make test-agent      # Python only
+make test-ui         # TypeScript only
+```
+
+Manual end-to-end (publishes a WAV + listens for transcripts on the same LiveKit session):
+
+```bash
+cd agent
+uv run tests/e2e_speaker_listener.py /path/to/sample.wav
+```
 
 ## Where to look next
 
-- [Design](./docs/planning/design/detailed-design.md) — single source of truth for behavior, components, data models, errors, testing.
-- [Implementation plan](./docs/planning/implementation/plan.md) — 10 incremental, demoable steps.
-- [Research notes](./docs/planning/research/) — six deep-dive docs (LiveKit Agents SDK, local ASR, local LLM, detectors, frontend, minimal setup).
+- [`docs/AS-BUILT.md`](./docs/AS-BUILT.md) — implemented architecture, data flows, and key deviations from the original plan.
+- [`docs/planning/design/detailed-design.md`](./docs/planning/design/detailed-design.md) — original design doc (historical; some sections superseded by AS-BUILT).
+- [`docs/planning/implementation/plan.md`](./docs/planning/implementation/plan.md) — the 10-step plan with a progress checklist at the top.
 
 ## License
 

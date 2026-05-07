@@ -121,6 +121,15 @@ Run LiveKit server, the agent, and the UI. Open the browser, grant mic. In the D
 
 ## Step 3 — In-process `faster-whisper` STT emits live transcripts to the UI
 
+> **As shipped** (see [`docs/AS-BUILT.md`](../../AS-BUILT.md)): implemented via `LocalFasterWhisperSTT` + `LocalFasterWhisperStream` in `agent/src/coach_agent/stt/local_whisper.py`. Key deviations from the plan below:
+>
+> - **Silero-driven finalization lands here**, not Step 6. The `CoachAgent.stt_node` override captures a handle on the active stream; `session.on("user_state_changed")` calls `stream.flush()` the moment Silero reports `speaking → listening/away`. The timer-based "~600 ms of no new audio" heuristic was never implemented.
+> - **Sliding 3 s window**, not 3 s rolling with accumulation. Interim latency stays flat as utterances grow.
+> - **Single-pass Whisper** with `vad_filter=False`. A two-pass VAD+fallback strategy was tried and reverted (it doubled CPU cost on `base.en` with no accuracy gain).
+> - **Hallucination guard** (`_looks_hallucinated`) drops YouTube-caption artefacts (`"Okay. Okay."`, `"Thanks for watching!"`) without swallowing fillers (`"um"`, `"uh"`).
+> - **RMS silence gate** at `SILENCE_RMS_THRESHOLD=0.002` skips transcription on pure silence, saving CPU and avoiding most hallucinations at the source.
+> - The UI renders **both** partials (italic) and finals (solid), with a pulsing "● Listening…" badge; early cuts were finals-only.
+
 ### Objective
 Deliver the first slice of real value: speak into the mic, see live transcript text in the UI, produced by `faster-whisper` running in-process on the agent.
 
@@ -188,6 +197,14 @@ Open UI, pick "Billing dispute on a monthly plan", click Start, read the rep tur
 ---
 
 ## Step 5 — Tight-lane text detectors wired to live metric counters
+
+> **As shipped** (see [`docs/AS-BUILT.md`](../../AS-BUILT.md)): landed alongside Step 3, **without** waiting on Step 4 (session lifecycle). Session is implicit while the browser is connected. Deviations from the plan below:
+>
+> - **Four detectors** in `agent/src/coach_agent/detectors/`: `FillerDetector`, `PacingDetector`, `ProhibitedDetector`, `SentimentDetector`. All consume final transcripts only.
+> - **`MetricsSnapshotBuilder`** rate-limits publishes to ~250 ms trailing-edge on the `metrics` data-channel topic, as designed.
+> - **`MetricsBar`** in the UI renders the four tiles. Works against the current implicit session (no Start/Stop gating yet).
+> - **`DEFAULT_PROHIBITED_PHRASES`** in `agent/src/coach_agent/config.py` ships with a small default list (`"i don't know"`, `"i can't help you"`, `"that's not my problem"`, `"not my fault"`, `"calm down"`, `"you should have"`, `"whatever"`, `"nothing i can do"`). Changes require editing `config.py` + agent restart until Step 7 lands the settings UI.
+> - Event bus (`pipeline/event_bus.py` in the plan) was **not** built — detectors are fed directly from `main.py`'s `user_input_transcribed` handler. Will be introduced if Step 8 lands.
 
 ### Objective
 Deliver the first coaching signals. On every transcript event, run filler, pacing, prohibited-phrase, and sentiment detectors in-process. Publish a `metrics` snapshot to the UI and render live counters.
