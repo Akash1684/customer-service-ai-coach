@@ -1,0 +1,48 @@
+# Editors / IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# Local env files — never commit
+.env
+.env.local
+.env.*.local
+
+# Node / Vite
+node_modules/
+coach-ui/dist/
+coach-ui/.vite/
+coach-ui/coverage/
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Model caches (should never leak into repo but guard anyway)
+*.bin
+*.gguf
+*.safetensors
+*.onnx
+models/
+model_cache/
+
+# Agent output / logs
+*.log
+agent/tests/artifacts/

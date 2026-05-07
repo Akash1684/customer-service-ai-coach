@@ -1,0 +1,43 @@
+[project]
+name = "coach-agent"
+version = "0.1.0"
+description = "Customer Service AI Coach — local LiveKit agent for real-time practice feedback"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Akash Srivastava" }]
+dependencies = [
+    # Runtime deps grow step-by-step. Step 1 only needs env/dotenv.
+    # Step 2 will add: "livekit-agents", "livekit-plugins-silero"
+    # Step 3 will add: "faster-whisper", "ctranslate2", "numpy", "scipy"
+    # Step 5 will add: "rapidfuzz", "vaderSentiment"
+    # Step 8 will add: "livekit-plugins-openai"
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.4",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/coach_agent"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+asyncio_mode = "auto"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B"]
+ignore = ["E501"]
