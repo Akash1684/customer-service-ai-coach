@@ -12,7 +12,7 @@
 ## Progress checklist
 
 - [x] **Step 1** — Repository scaffolding, tooling, and local-services runbook — _committed as `72cbca5` on 2026-05-07_
-- [ ] **Step 2** — Browser mic publishes to local LiveKit; agent echoes liveness to a data channel
+- [x] **Step 2** — Browser mic publishes to local LiveKit; agent echoes liveness to a data channel — _verified 2026-05-07 via Python E2E listener: 5 heartbeats received at 2s cadence_
 - [ ] **Step 3** — In-process `faster-whisper` STT emits live transcripts to the UI
 - [ ] **Step 4** — Session lifecycle (start/stop), 3-script library, and UI shell
 - [ ] **Step 5** — Tight-lane text detectors (filler · pacing · prohibited · sentiment) wired to live metric counters
