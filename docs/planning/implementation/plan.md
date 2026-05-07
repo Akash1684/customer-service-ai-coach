@@ -13,9 +13,9 @@
 
 - [x] **Step 1** — Repository scaffolding, tooling, and local-services runbook — _committed as `72cbca5` on 2026-05-07_
 - [x] **Step 2** — Browser mic publishes to local LiveKit; agent echoes liveness to a data channel — _verified 2026-05-07 via Python E2E listener: 5 heartbeats received at 2s cadence_
-- [ ] **Step 3** — In-process `faster-whisper` STT emits live transcripts to the UI
+- [x] **Step 3** — In-process `faster-whisper` STT emits live transcripts to the UI — _verified 2026-05-07 end-to-end with live mic; sliding 3 s window on `base.en` int8, Silero-driven finalization via `user_state_changed`_
 - [ ] **Step 4** — Session lifecycle (start/stop), 3-script library, and UI shell
-- [ ] **Step 5** — Tight-lane text detectors (filler · pacing · prohibited · sentiment) wired to live metric counters
+- [x] **Step 5** — Tight-lane text detectors (filler · pacing · prohibited · sentiment) wired to live metric counters — _landed alongside Step 3; `MetricsBar` renders four tiles against the `metrics` data-channel topic_
 - [ ] **Step 6** — Silero VAD + dead-air detector + all P0 metrics live
 - [ ] **Step 7** — UI settings panel persisted to `localStorage`, applied live via `update_settings` RPC
 - [ ] **Step 8** — Ollama-backed nudge worker (relaxed lane) streaming LLM coaching to the UI
