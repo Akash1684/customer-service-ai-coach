@@ -27,6 +27,9 @@ DEFAULT_FILLER_WORDS: tuple[str, ...] = (
 
 DEFAULT_PROHIBITED_PHRASES: tuple[str, ...] = (
     "i don't know",
+    "i don't care",
+    "not my job",
+    "deal with it",
     "i can't help you",
     "that's not my problem",
     "not my fault",
