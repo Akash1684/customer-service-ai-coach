@@ -4,6 +4,9 @@ A ~60-second read-aloud session designed to exercise all three detectors
 (Fillers, Prohibited, Sentiment) and include a sentiment dip + recovery so
 the MetricsBar tiles visibly change during the recording.
 
+> 🎥 **Recorded demo:** [`./demo/DemoCoach.mov`](./demo/DemoCoach.mov) —
+> the script below is what was spoken in that recording.
+
 ## Pre-flight
 
 1. Three terminals running:
@@ -13,12 +16,10 @@ the MetricsBar tiles visibly change during the recording.
    npm --prefix coach-ui run dev
    ```
 2. Visit <http://localhost:5173>, grant mic permission, **keep the tab focused**
-   (background tabs throttle WebRTC).
-3. Visit <http://localhost:5173>, grant mic permission, **keep the tab focused**
    (background tabs throttle WebRTC). The first utterance after agent
    startup takes ~4 s (model loads lazily into the worker process); every
    subsequent utterance is hot.
-4. Start your screen recorder. On macOS: `⌘5` → Record Entire Screen →
+3. Start your screen recorder. On macOS: `⌘5` → Record Entire Screen →
    Options → Microphone: Built-in.
 
 ## The script

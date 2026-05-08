@@ -5,6 +5,8 @@
 
 Speak into your microphone and receive **live coaching feedback** as you talk: a rolling transcript plus three real-time metric tiles (filler words, prohibited-phrase hits, sentiment) — all running on your laptop. No cloud calls, no accounts, no data leaves your machine.
 
+🎥 **Demo video:** [`docs/demo/DemoCoach.mov`](./docs/demo/DemoCoach.mov) (15 MB, ~1 min walk-through)
+
 ![status badge](https://img.shields.io/badge/status-active%20development-yellow)
 
 ## What works today
