@@ -24,7 +24,7 @@ Speak into your microphone and receive **live coaching feedback** as you talk: a
 | Markdown session report | ⏭ Step 9 |
 | Dead-air detection + endpoint polish | ⏭ Step 6 / 10 |
 
-See [`docs/AS-BUILT.md`](./docs/AS-BUILT.md) for the **implemented** architecture (what's actually in the code), [`docs/CODE-TOUR.md`](./docs/CODE-TOUR.md) for a 1-page walk through the agent code, and [`docs/planning/`](./docs/planning/) for the original planning record (rough idea → Q&A → research → design → plan).
+See [`docs/AS-BUILT.md`](./docs/AS-BUILT.md) for the **implemented** architecture (what's actually in the code), [`docs/CODE-TOUR.md`](./docs/CODE-TOUR.md) for a 1-page walk through the agent code, [`docs/DEMO.md`](./docs/DEMO.md) for a recording-ready demo script, and [`docs/planning/`](./docs/planning/) for the original planning record (rough idea → Q&A → research → design → plan).
 
 ## Prerequisites
 
