@@ -1,137 +1,96 @@
-# Customer Service AI Coach — Project Presentation
+# Customer Service AI Coach
 
-> Draft deck, 4 slides. Edit freely. Each slide ends with speaker notes in
-> *italics* — delete before showing.
+## Slide 1 — Overview
 
----
+**Customer Service AI Coach** is a browser-based practice environment that gives support representatives **real-time coaching feedback while they speak** — no scheduled reviews, no cloud, no recordings.
 
-## Slide 1 — What & Why
+### Problem
 
-### Customer Service AI Coach
+- Reps today receive feedback **after** calls, via supervisor reviews or post-call transcripts. The feedback loop is slow and reactive.
+- Cloud-based real-time alternatives require streaming customer audio to third parties — unacceptable for privacy-sensitive industries (healthcare, financial services, government).
 
-A **fully-local, browser-based, real-time practice tool** for customer
-service reps. Speak into your laptop mic, get live coaching feedback —
-three metric tiles + live transcript, all within ~500 ms.
+### What the rep experiences
 
-**Hard constraints (chosen, not accidental):**
+- Speak into the browser microphone.
+- A live transcript appears in under half a second.
+- Three coaching signals update continuously:
+  - **Filler word count** (`um`, `uh`, `like`, `you know` …)
+  - **Prohibited phrase hits** (`"I don't know"`, `"not my job"`, `"calm down"` …)
+  - **Tone tracking** (positive / neutral / negative)
 
-- **No cloud.** Nothing leaves the machine. No accounts. No session history.
-- **CPU-only** consumer laptop. No GPU assumption.
-- **< 500 ms** end-to-end for tight-lane feedback.
-- **~2.2 GB one-time** model download. No Docker.
+### Deployment properties
 
-**Stack:** LiveKit (WebRTC) + Python agent (`faster-whisper base.en int8`,
-Silero VAD, rule-based detectors) + React/Vite UI.
-
-*Speaker note: These constraints forced a 2-lane architecture — fast
-signals in-process, LLM-heavy work async. We ultimately deferred the LLM
-entirely out of P0 (slide 3).*
+- **Fully local.** All audio and transcript data stay on the rep's laptop.
+- **No cloud services, no per-session cost.**
+- **CPU-only** — runs on a standard consumer laptop. One-time 2.2 GB model download.
 
 ---
 
-## Slide 2 — Architecture
+## Slide 2 — How it works
 
 ```
-   Browser (React/Vite)                           Browser UI
-        │                                             ▲
-        │ WebRTC audio                 metrics JSON   │
-        ▼                                             │
-   LiveKit server (--dev mode, local)                 │
-        │                                             │
-        ▼                                             │
-   Python agent:                                      │
-   ┌──────────────────────────────────────────────┐   │
-   │  1. faster-whisper STT (3 s sliding window)  │   │
-   │  2. Silero VAD drives finalization           │   │
-   │  3. Three detectors (filler/prohibited/sent) │   │
-   │  4. 250 ms trailing metrics publish          │───┘
-   └──────────────────────────────────────────────┘
+   Rep's browser ────── WebRTC audio ──────► Local LiveKit server
+         ▲                                          │
+         │  live metrics + transcript (JSON)        ▼
+         └──────────────────────────────── Python coaching agent
+                                           (Whisper STT + detectors)
 ```
 
-**Three design calls worth calling out:**
+### Technical approach
 
-- **Silero-driven finalization.** No custom timer heuristic. Whisper
-  transcribes on a rolling 3 s window; Silero flips a flag on speech-stop;
-  we flush. Eliminated ~40 lines of handcrafted VAD.
-- **Hallucination guard.** Whisper outputs `"Okay. Okay. Okay."` on room
-  tone. RMS gate + string filter drop these *without* swallowing real
-  fillers like `"um"` / `"uh"`.
-- **State-replacement `metrics` topic.** UI keeps only the latest packet.
-  No event ordering bugs, no delta reducers.
+- **Open-source Whisper** (`faster-whisper base.en`) for speech-to-text, running in-process on the rep's laptop. ~250 ms per transcription on CPU.
+- **Rule-based detectors** for the three coaching signals. Low-latency, deterministic, no AI model drift.
+- **WebRTC (LiveKit)** for the real-time audio transport. Industry-standard, open-source, self-hosted.
 
-*Speaker note: The in-process STT replaced a separately-planned Docker
-container. Silero-driven flush replaced a planned timer heuristic. Both
-changed during implementation — documented in `AS-BUILT.md`.*
+### End-to-end latency
 
----
-
-## Slide 3 — Process: Scope Discipline + Simplification
-
-**Planned vs Shipped — explicit deferrals**
-
-| Planned | Shipped |
+| Step | Time |
 |---|---|
-| 4 detectors (Filler, Pacing, Prohibited, Sentiment) | 3 — dropped pacing post-launch |
-| Ollama-backed LLM nudges | **Deferred out of P0** |
-| End-of-session LLM narrative summary | Deferred |
-| Start/Stop lifecycle + 3-script library | Implicit session (connected = running) |
-| Settings UI + `localStorage` | Defaults in `config.py` |
-
-**Three simplification passes — net –500 LOC, zero regressions**
-
-1. Dropped `DebugPane`/liveness scaffold (~370 LOC) — a Step-2 debug aid
-   with no product value.
-2. Linearized the audio ring buffer (4 code paths → 1), unified two
-   publish helpers, dropped dead state fields.
-3. Removed step-history narration ("Step 8 will add…") that made the code
-   read like it had missing pieces.
-
-**Testing posture.** 72 tests green (44 Python + 28 TypeScript).
-`ruff` clean. `tsc --noEmit` clean.
-
-*Speaker note: The willingness to defer the LLM is the most important
-decision. Keeping P0 free of the LLM worker + prompt engineering meant we
-could actually ship something comprehensible and testable. Every
-simplification pass was a conscious "can we cut this without losing
-value" call.*
+| Speech → partial transcript on screen | ~500 ms |
+| Speech → final transcript + metrics update | ~250 ms after a pause |
+| Cold start (first utterance after launch) | 0 — model pre-warmed at agent startup |
 
 ---
 
-## Slide 4 — Status, Demo, Next
+## Slide 3 — Status
 
-### Today
+### Shipped and working end-to-end
 
-- Speak → partial transcript in ~500 ms, final in ~250 ms after VAD
-- Fillers / Prohibited / Sentiment tiles update live (250 ms cadence)
-- Prohibited-phrase hits highlight red; sentiment pill goes green/red
-- Model pre-warmed at agent startup — **no cold-start on first utterance**
+- Browser microphone → local transcription → three live coaching tiles
+- Pre-warmed model eliminates first-utterance cold start
+- 72 automated tests passing, lint and type-check clean
 
-### Demo
+### Scope
 
-**`docs/DEMO.md`** — a 4-act, ~60 s script that exercises all three
-detectors with a sentiment dip + recovery. Recording-ready.
+| Capability | Status |
+|---|---|
+| Real-time STT + live coaching metrics | **Shipped** |
+| Filler, prohibited-phrase, and tone detectors | **Shipped** |
+| AI-generated coaching suggestions (LLM nudges) | Scoped to v2 |
+| Start/Stop session + practice script library | Scoped to v2 |
+| In-browser settings editor (thresholds, phrase list) | Scoped to v2 |
+| Downloadable session report | Scoped to v2 |
 
-### Natural next steps (ordered by user value)
+A 60-second recording-ready demo script is included in the repository.
 
-1. **Session lifecycle + 3-script library** — currently implicit; add
-   explicit Start/Stop and a minimal practice-script library.
-2. **Settings UI + `localStorage`** — let reps edit the prohibited list,
-   filler list, thresholds from the browser.
-3. **LLM nudges (Ollama + `qwen2.5:3b`)** — supportive coaching
-   suggestions. Only after (1) and (2) land.
-4. **End-of-session markdown report** — transcript + metrics + nudges +
-   narrative summary, downloadable.
+---
 
-### Repo
+## Slide 4 — Roadmap
 
-<https://github.com/Akash1684/customer-service-ai-coach>
+### Near-term (v2)
 
-- [`AS-BUILT.md`](./AS-BUILT.md) — shipping architecture
-- [`CODE-TOUR.md`](./CODE-TOUR.md) — 1-page code tour
-- [`DEMO.md`](./DEMO.md) — recording-ready script
+1. **Session lifecycle.** Explicit Start / Stop controls, plus a small library of practice scripts covering the most common customer-service scenarios (billing disputes, cancellations, account inquiries).
+2. **In-browser settings.** Let reps tune their filler list, prohibited phrases, and thresholds without a redeploy.
+3. **AI coaching suggestions.** Layer a local LLM on top of the detector events to produce supportive, natural-language nudges. Local inference keeps the privacy posture intact.
 
-*Speaker note: Ordering intentionally puts LLM last. User-facing scope
-(sessions, settings) is bigger bang-for-buck than deeper AI integration
-at this stage. The LLM adds the biggest footprint (~2 GB model + prompt
-engineering + concurrency control) — worth doing only when the core UX
-has room to use it.*
+### Longer-term
+
+- End-of-session markdown report — transcript, metrics, and coaching summary, downloadable.
+- Multi-language support (current build is English-only).
+- Optional deployment for live customer calls (current build is practice-only).
+
+### Links
+
+- **Repository:** <https://github.com/Akash1684/customer-service-ai-coach>
+- **Architecture reference:** `docs/AS-BUILT.md`
+- **Demo script:** `docs/DEMO.md`
