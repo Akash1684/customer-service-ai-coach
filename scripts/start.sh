@@ -1,42 +1,62 @@
 #!/usr/bin/env bash
-# Start — print instructions to run the three local services.
+# Start all three local services in the background with logs in .run/.
 #
-# The three services you need:
-#   1. livekit-server --dev    (WebRTC SFU, ws://127.0.0.1:7880)
-#   2. Python agent            (STT + detectors)
-#   3. Vite dev server         (UI at http://localhost:5173)
+# Processes are owned by your shell. Stop them with:
+#   ./scripts/stop.sh
+#
+# Tail any log live:
+#   tail -f .run/agent.log
+#   tail -f .run/livekit.log
+#   tail -f .run/ui.log
 
 set -euo pipefail
 
+ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )/.."
+cd "$ROOT_DIR"
+
+mkdir -p .run
+rm -f .run/*.log .run/*.pid
+
 say() { printf "\033[1;36m%s\033[0m\n" "$*"; }
-dim() { printf "\033[2m%s\033[0m\n" "$*"; }
+ok()  { printf "\033[1;32m%s\033[0m\n" "$*"; }
+warn(){ printf "\033[1;33m%s\033[0m\n" "$*"; }
 
-say "Customer Service AI Coach — local run checklist"
-echo
+# 1. LiveKit SFU
+if lsof -i :7880 -sTCP:LISTEN >/dev/null 2>&1; then
+  warn "livekit-server already on 7880 — leaving it alone"
+else
+  (nohup livekit-server --dev </dev/null >.run/livekit.log 2>&1 &
+   echo $! > .run/livekit.pid
+   disown) 2>/dev/null
+  for i in {1..30}; do
+    lsof -i :7880 -sTCP:LISTEN >/dev/null 2>&1 && break
+    sleep 0.3
+  done
+  ok "✅ livekit on 7880"
+fi
 
-say "Prereqs:"
-dim "  brew install livekit livekit-cli"
-dim "  curl -LsSf https://astral.sh/uv/install.sh | sh"
-dim "  (Ollama is NOT required for the current build — Step 8 work only.)"
-echo
+# 2. Python agent
+(cd agent && nohup uv run src/coach_agent/main.py dev </dev/null >../.run/agent.log 2>&1 &
+ echo $! > ../.run/agent.pid
+ disown) 2>/dev/null
+say "⏳ agent starting (pid=$(cat .run/agent.pid))..."
 
-say "Three-pane setup:"
-echo "  Pane 1:   livekit-server --dev"
-dim "            (LiveKit WebRTC server on ws://127.0.0.1:7880)"
-echo
-echo "  Pane 2:   cd agent && uv run src/coach_agent/main.py dev"
-dim "            (Python agent — loads faster-whisper base.en lazily on first session)"
-echo
-echo "  Pane 3:   npm --prefix coach-ui run dev"
-dim "            (UI at http://localhost:5173 — needs coach-ui/.env.local with a dev token)"
-echo
+# 3. Vite UI
+(nohup npm --prefix coach-ui run dev </dev/null >.run/ui.log 2>&1 &
+ echo $! > .run/ui.pid
+ disown) 2>/dev/null
+for i in {1..40}; do
+  lsof -i :5173 -sTCP:LISTEN >/dev/null 2>&1 && { ok "✅ ui on 5173"; break; }
+  sleep 0.5
+done
 
-say "Dev token (once, valid 30 days):"
-dim "  lk token create --api-key devkey --api-secret secret \\"
-dim "      --join --room coach-room --identity rep-local \\"
-dim "      --valid-for 720h --token-only"
-echo
-dim "Drop the JWT into coach-ui/.env.local under VITE_LIVEKIT_TOKEN."
-echo
+# Wait for the agent's LiveKit worker registration
+for i in {1..40}; do
+  grep -q "registered worker" .run/agent.log 2>/dev/null && { ok "✅ agent worker registered"; break; }
+  sleep 0.5
+done
 
-say "Open http://localhost:5173, grant mic, start speaking."
+echo
+say "Open:   http://localhost:5173"
+say "Tail:   tail -f .run/agent.log"
+say "Stop:   ./scripts/stop.sh"
