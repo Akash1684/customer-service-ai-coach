@@ -46,3 +46,6 @@ model_cache/
 # Agent output / logs
 *.log
 agent/tests/artifacts/
+
+# Local dev runtime artifacts
+.run/
