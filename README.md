@@ -3,7 +3,7 @@
 > A fully local, browser-based, real-time practice tool for customer service reps.
 > Current build: `main` — Steps 1, 2, 3, and 5 shipped. Ollama/LLM work (Step 8) deferred out of P0.
 
-Speak into your microphone and receive **live coaching feedback** as you talk: a rolling transcript plus four real-time metric tiles (filler words, pacing WPM, prohibited-phrase hits, sentiment) — all running on your laptop. No cloud calls, no accounts, no data leaves your machine.
+Speak into your microphone and receive **live coaching feedback** as you talk: a rolling transcript plus three real-time metric tiles (filler words, prohibited-phrase hits, sentiment) — all running on your laptop. No cloud calls, no accounts, no data leaves your machine.
 
 ![status badge](https://img.shields.io/badge/status-active%20development-yellow)
 
@@ -15,7 +15,7 @@ Speak into your microphone and receive **live coaching feedback** as you talk: a
 | In-process `faster-whisper` STT (`base.en`, int8) | ✅ |
 | Silero-VAD-driven finalization (no custom turn detection) | ✅ |
 | Live partial + final transcripts on the UI | ✅ |
-| Filler / Pacing / Prohibited / Sentiment detectors | ✅ |
+| Filler / Prohibited / Sentiment detectors | ✅ |
 | MetricsBar UI (four live tiles) | ✅ |
 | Whisper-hallucination guard | ✅ |
 | Start/Stop session lifecycle + script library | ⏭ Step 4 |
@@ -97,7 +97,7 @@ customer-service-ai-coach/
 │   │   ├── main.py                     # Entry point, CoachAgent subclass
 │   │   ├── config.py                   # CoachSettings (defaults)
 │   │   ├── stt/local_whisper.py        # In-process faster-whisper STT
-│   │   ├── detectors/                  # filler · pacing · prohibited · sentiment
+│   │   ├── detectors/                  # filler · prohibited · sentiment
 │   │   └── pipeline/metrics.py         # MetricsSnapshotBuilder (rate-limited)
 │   └── tests/                          # 51 unit tests, 2 manual E2E scripts
 ├── coach-ui/                           # React + Vite frontend

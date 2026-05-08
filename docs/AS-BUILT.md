@@ -50,9 +50,6 @@ UI → agent: **none yet**. The Settings RPC (`update_settings`) is a Step 7 ite
   "t_ms": 1715125000,
   "fillers_total": 3,
   "fillers_last": "um",
-  "wpm_current": 148,
-  "wpm_avg": 152,
-  "pacing_band": "ok",          // "slow" | "ok" | "fast"
   "prohibited_hits": 1,
   "prohibited_last": "calm down",
   "sentiment_tag": "Neutral",   // "Positive" | "Neutral" | "Negative"
@@ -120,10 +117,9 @@ This eliminates all custom VAD / silence-heuristic code from the STT stream. The
 
 ## Detectors
 
-`agent/src/coach_agent/detectors/` — four independent detectors, each consuming final transcripts only (interim events are ignored to prevent double-counting).
+`agent/src/coach_agent/detectors/` — three independent detectors, each consuming final transcripts only (interim events are ignored to prevent double-counting).
 
 - **`FillerDetector`** — tokenizes final text, matches against a unigram + bigram filler list, tracks cumulative count + last word.
-- **`PacingDetector`** — rolling 10-s WPM and cumulative avg WPM; emits `pace_fast` / `pace_slow` events on band transitions.
 - **`ProhibitedDetector`** — exact substring first, `rapidfuzz.fuzz.partial_ratio >= 88` as fallback (catches missing apostrophes, minor Whisper errors).
 - **`SentimentDetector`** — VADER compound score on a rolling 20-s window; emits `sentiment_dip` only on downgrades.
 
@@ -142,7 +138,7 @@ This eliminates all custom VAD / silence-heuristic code from the STT stream. The
 
 - **`App.tsx`** — mounts `<LiveKitRoom>` with the dev token from `.env.local`, renders the panes.
 - **`TranscriptPane.tsx`** — subscribes to the `transcript` topic. Shows finals as solid lines, the current partial as italicized draft text, and a pulsing "● Listening…" badge while a partial is active.
-- **`MetricsBar.tsx`** — subscribes to `metrics`. Four tiles: fillers, pacing, prohibited, sentiment. Accent colors flag fast/slow pacing, prohibited hits, and negative sentiment.
+- **`MetricsBar.tsx`** — subscribes to `metrics`. Three tiles: fillers, prohibited, sentiment. Accent colors flag prohibited hits and negative sentiment.
 
 All text-level UI state lives in React components; **nothing** is persisted to `localStorage` yet (Step 7 item).
 

@@ -14,9 +14,6 @@ const VALID: MetricsSnapshot = {
   t_ms: 123,
   fillers_total: 3,
   fillers_last: "um",
-  wpm_current: 145,
-  wpm_avg: 152,
-  pacing_band: "ok",
   prohibited_hits: 1,
   prohibited_last: "calm down",
   sentiment_tag: "Neutral",
@@ -33,18 +30,13 @@ describe("parseMetricsPacket", () => {
     expect(parseMetricsPacket(encode(snap))).toEqual(snap);
   });
 
-  it("returns null when pacing_band is invalid", () => {
-    const snap = { ...VALID, pacing_band: "lightspeed" };
-    expect(parseMetricsPacket(encode(snap))).toBeNull();
-  });
-
   it("returns null when sentiment_tag is invalid", () => {
     const snap = { ...VALID, sentiment_tag: "Joyful" };
     expect(parseMetricsPacket(encode(snap))).toBeNull();
   });
 
   it("returns null when a numeric field is missing", () => {
-    const { wpm_avg: _unused, ...rest } = VALID;
+    const { prohibited_hits: _unused, ...rest } = VALID;
     expect(parseMetricsPacket(encode(rest))).toBeNull();
   });
 

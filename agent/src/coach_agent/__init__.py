@@ -4,7 +4,7 @@ Package layout:
 
 - ``config.py``    — :class:`CoachSettings` dataclass (detector defaults)
 - ``stt/``         — in-process :class:`LocalFasterWhisperSTT` (faster-whisper)
-- ``detectors/``   — filler, pacing, prohibited, and sentiment detectors
+- ``detectors/``   — filler, prohibited, and sentiment detectors
 - ``pipeline/``    — :class:`MetricsSnapshotBuilder` (rate-limited publisher)
 - ``main.py``      — :class:`CoachAgent` + :func:`entrypoint` wiring everything
                      into a LiveKit ``AgentSession``

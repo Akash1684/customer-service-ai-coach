@@ -17,7 +17,7 @@ LiveKit server (local)                                      │
 Python agent:                                               │
     ┌────────────────────────────────────────────────┐      │
     │  1. stt/local_whisper.py  (faster-whisper)     │      │
-    │  2. detectors/*.py        (filler/pacing/…)    │      │
+    │  2. detectors/*.py        (filler/prohibited/…)│      │
     │  3. pipeline/metrics.py   (rate-limit + emit)  │──────┘
     └────────────────────────────────────────────────┘
 ```
@@ -56,12 +56,11 @@ def on_final(self, text: str, t_ms: int) -> list[DetectorEvent]: ...
 def reset(self) -> None: ...
 ```
 
-Each detector also exposes state accessors specific to itself (`total`, `wpm_avg()`, `hits`, `tag()`).
+Each detector also exposes state accessors specific to itself (`total`, `hits`, `tag()`).
 
 | Detector | What it does |
 |---|---|
 | `filler.py` | Tokenizes text, matches against `DEFAULT_FILLER_WORDS` (uni- + bigram). |
-| `pacing.py` | Rolling words-per-minute + cumulative average; emits band-transition events. |
 | `prohibited.py` | Exact substring + `rapidfuzz` fuzzy fallback (threshold 88). |
 | `sentiment.py` | VADER compound score on a 20 s rolling window; 3-tag output. |
 
@@ -80,7 +79,7 @@ The UI is simpler than the agent and mostly React + hooks. Three files matter:
 
 - `coach-ui/src/App.tsx` — mounts the LiveKit room.
 - `coach-ui/src/metrics.ts` — parses the `metrics` JSON payload.
-- `coach-ui/src/MetricsBar.tsx` — subscribes to the `metrics` topic via `useDataChannel`, renders four tiles.
+- `coach-ui/src/MetricsBar.tsx` — subscribes to the `metrics` topic via `useDataChannel`, renders three tiles.
 
 ## Python concepts you'll hit
 
@@ -94,7 +93,6 @@ The UI is simpler than the agent and mostly React + hooks. Three files matter:
 | I want to… | Touch… |
 |---|---|
 | Add / remove filler words | `agent/src/coach_agent/config.py` → `DEFAULT_FILLER_WORDS` |
-| Change the WPM band | same file → `DEFAULT_WPM_LOW` / `DEFAULT_WPM_HIGH` |
 | Add a prohibited phrase | same file → `DEFAULT_PROHIBITED_PHRASES` |
 | Change metrics publish rate | same file → `metrics_publish_interval_s` |
 | Add a 5th detector | new `detectors/foo.py` + register in `pipeline/metrics.py` (`__init__`, `reset`, `on_final`, `snapshot`) |
@@ -105,18 +103,18 @@ The UI is simpler than the agent and mostly React + hooks. Three files matter:
 ```
 agent/src/coach_agent/
     main.py                ~180 lines   entrypoint + wiring
-    config.py               ~55 lines   settings + defaults
-    stt/local_whisper.py   ~320 lines   the streaming STT (longest file)
-    stt/ring_buffer.py     ~100 lines   int16 → float32 sliding buffer
-    detectors/{4 files}    ~300 lines   ~75 lines each
-    pipeline/metrics.py    ~150 lines   async snapshot builder
+    config.py               ~50 lines   settings + defaults
+    stt/local_whisper.py   ~415 lines   the streaming STT (longest file)
+    stt/ring_buffer.py      ~60 lines   int16 → float32 sliding buffer
+    detectors/{3 files}    ~270 lines   ~90 lines each
+    pipeline/metrics.py    ~115 lines   async snapshot builder
 
 coach-ui/src/
     App.tsx                 ~75 lines
-    MetricsBar.tsx         ~140 lines
-    TranscriptPane.tsx     ~100 lines
-    metrics.ts              ~80 lines   parse + types
+    MetricsBar.tsx         ~110 lines
+    TranscriptPane.tsx     ~105 lines
+    metrics.ts              ~60 lines   parse + types
     transcript.ts           ~65 lines   parse + types
 ```
 
-No file is over 320 lines. If you're lost, re-read this page, then jump to the file you care about.
+No file is over 420 lines. If you're lost, re-read this page, then jump to the file you care about.

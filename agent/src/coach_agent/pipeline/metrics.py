@@ -1,7 +1,6 @@
 """Rate-limited metrics snapshot composer.
 
-`MetricsSnapshotBuilder` owns the four detector instances and exposes two
-surfaces:
+`MetricsSnapshotBuilder` owns the detector instances and exposes two surfaces:
 
 - ``on_final(text, t_ms)`` — called by the transcript pipeline after each
   final transcript. Feeds every detector and schedules a publish.
@@ -24,7 +23,6 @@ from dataclasses import asdict, dataclass
 from ..config import CoachSettings
 from ..detectors import (
     FillerDetector,
-    PacingDetector,
     ProhibitedDetector,
     SentimentDetector,
 )
@@ -41,9 +39,6 @@ class MetricsSnapshot:
     t_ms: int
     fillers_total: int
     fillers_last: str | None
-    wpm_current: float
-    wpm_avg: float
-    pacing_band: str
     prohibited_hits: int
     prohibited_last: str | None
     sentiment_tag: str
@@ -65,11 +60,6 @@ class MetricsSnapshotBuilder:
         self._publish = publish
 
         self._filler = FillerDetector(settings.filler_words)
-        self._pacing = PacingDetector(
-            wpm_low=settings.wpm_low,
-            wpm_high=settings.wpm_high,
-            window_s=settings.pacing_window_s,
-        )
         self._prohibited = ProhibitedDetector(settings.prohibited_phrases)
         self._sentiment = SentimentDetector()
 
@@ -78,7 +68,6 @@ class MetricsSnapshotBuilder:
     def reset(self) -> None:
         """Clear all detector state. Call on session start."""
         self._filler.reset()
-        self._pacing.reset()
         self._prohibited.reset()
         self._sentiment.reset()
         if self._pending and not self._pending.done():
@@ -90,7 +79,6 @@ class MetricsSnapshotBuilder:
         if not text.strip():
             return
         self._filler.on_final(text, t_ms)
-        self._pacing.on_final(text, t_ms)
         self._prohibited.on_final(text, t_ms)
         self._sentiment.on_final(text, t_ms)
         self._schedule_publish()
@@ -100,9 +88,6 @@ class MetricsSnapshotBuilder:
             t_ms=int(time.time() * 1000),
             fillers_total=self._filler.total,
             fillers_last=self._filler.last_word,
-            wpm_current=round(self._pacing.wpm_current(), 1),
-            wpm_avg=round(self._pacing.wpm_avg(), 1),
-            pacing_band=self._pacing.band(),
             prohibited_hits=self._prohibited.hits,
             prohibited_last=self._prohibited.last_match,
             sentiment_tag=self._sentiment.tag(),

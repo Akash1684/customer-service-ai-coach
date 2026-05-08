@@ -8,16 +8,12 @@
 
 export const METRICS_TOPIC = "metrics";
 
-export type PacingBand = "slow" | "ok" | "fast";
 export type SentimentTag = "Positive" | "Neutral" | "Negative";
 
 export interface MetricsSnapshot {
   t_ms: number;
   fillers_total: number;
   fillers_last: string | null;
-  wpm_current: number;
-  wpm_avg: number;
-  pacing_band: PacingBand;
   prohibited_hits: number;
   prohibited_last: string | null;
   sentiment_tag: SentimentTag;
@@ -28,9 +24,6 @@ export const EMPTY_METRICS: MetricsSnapshot = {
   t_ms: 0,
   fillers_total: 0,
   fillers_last: null,
-  wpm_current: 0,
-  wpm_avg: 0,
-  pacing_band: "ok",
   prohibited_hits: 0,
   prohibited_last: null,
   sentiment_tag: "Neutral",
@@ -48,10 +41,6 @@ export function parseMetricsPacket(payload: Uint8Array): MetricsSnapshot | null 
   }
 }
 
-function isPacingBand(v: unknown): v is PacingBand {
-  return v === "slow" || v === "ok" || v === "fast";
-}
-
 function isSentimentTag(v: unknown): v is SentimentTag {
   return v === "Positive" || v === "Neutral" || v === "Negative";
 }
@@ -63,9 +52,6 @@ function isMetricsSnapshot(v: unknown): v is MetricsSnapshot {
     typeof o.t_ms === "number" &&
     typeof o.fillers_total === "number" &&
     (o.fillers_last === null || typeof o.fillers_last === "string") &&
-    typeof o.wpm_current === "number" &&
-    typeof o.wpm_avg === "number" &&
-    isPacingBand(o.pacing_band) &&
     typeof o.prohibited_hits === "number" &&
     (o.prohibited_last === null || typeof o.prohibited_last === "string") &&
     isSentimentTag(o.sentiment_tag) &&
