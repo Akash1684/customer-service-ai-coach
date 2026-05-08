@@ -23,7 +23,6 @@ from dataclasses import asdict, dataclass
 
 from ..config import CoachSettings
 from ..detectors import (
-    DetectorEvent,
     FillerDetector,
     PacingDetector,
     ProhibitedDetector,
@@ -75,7 +74,6 @@ class MetricsSnapshotBuilder:
         self._sentiment = SentimentDetector()
 
         self._pending: asyncio.Task | None = None
-        self._last_events: list[DetectorEvent] = []
 
     def reset(self) -> None:
         """Clear all detector state. Call on session start."""
@@ -83,24 +81,19 @@ class MetricsSnapshotBuilder:
         self._pacing.reset()
         self._prohibited.reset()
         self._sentiment.reset()
-        self._last_events = []
         if self._pending and not self._pending.done():
             self._pending.cancel()
         self._pending = None
 
-    def on_final(self, text: str, t_ms: int) -> list[DetectorEvent]:
+    def on_final(self, text: str, t_ms: int) -> None:
         """Feed a final transcript through all detectors and schedule publish."""
         if not text.strip():
-            return []
-        events: list[DetectorEvent] = []
-        events.extend(self._filler.on_final(text, t_ms))
-        events.extend(self._pacing.on_final(text, t_ms))
-        events.extend(self._prohibited.on_final(text, t_ms))
-        events.extend(self._sentiment.on_final(text, t_ms))
-        if events:
-            self._last_events = events
+            return
+        self._filler.on_final(text, t_ms)
+        self._pacing.on_final(text, t_ms)
+        self._prohibited.on_final(text, t_ms)
+        self._sentiment.on_final(text, t_ms)
         self._schedule_publish()
-        return events
 
     def snapshot(self) -> MetricsSnapshot:
         return MetricsSnapshot(
@@ -120,15 +113,7 @@ class MetricsSnapshotBuilder:
         """Schedule a trailing-edge publish; coalesce bursts inside the window."""
         if self._pending is not None and not self._pending.done():
             return  # a publish is already pending — let it trail-fire
-
-        try:
-            loop = asyncio.get_running_loop()
-        except RuntimeError:
-            # Non-async context (e.g. inside a unit test that doesn't await):
-            # call publish synchronously via a no-op future. Tests that care
-            # about the async path should provide an event loop.
-            return
-
+        loop = asyncio.get_running_loop()
         self._pending = loop.create_task(self._publish_trailing())
 
     async def _publish_trailing(self) -> None:

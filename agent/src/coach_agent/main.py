@@ -88,36 +88,24 @@ class CoachAgent(Agent):
                 self.active_stream = None
 
 
-def _publish_transcript(ctx: JobContext, *, text: str, is_final: bool) -> asyncio.Task | None:
-    """Fire-and-forget publish of a transcript data packet."""
-    payload = json.dumps(
-        {"text": text, "is_final": bool(is_final)}, separators=(",", ":")
-    ).encode("utf-8")
-    try:
-        return asyncio.create_task(
-            ctx.room.local_participant.publish_data(
-                payload, reliable=True, topic=TRANSCRIPT_TOPIC
-            )
-        )
-    except Exception:
-        logger.exception("failed to schedule transcript publish")
-        return None
+async def _publish_json(ctx: JobContext, topic: str, payload: dict) -> None:
+    """Publish a JSON payload on a LiveKit data-channel topic.
 
-
-async def _publish_metrics(ctx: JobContext, snapshot: dict) -> None:
-    """Awaitable publish used by `MetricsSnapshotBuilder`."""
+    Safe against the room closing mid-publish — swallows `PublishDataError`
+    on the race and logs everything else. Callers:
+      - in async code, ``await _publish_json(...)``
+      - in sync event handlers, ``asyncio.create_task(_publish_json(...))``
+    """
     if not ctx.room.isconnected():
-        return  # session ended; silently drop the snapshot
-    payload = json.dumps(snapshot, separators=(",", ":")).encode("utf-8")
+        return
+    data = json.dumps(payload, separators=(",", ":")).encode("utf-8")
     try:
-        await ctx.room.local_participant.publish_data(
-            payload, reliable=True, topic=METRICS_TOPIC
-        )
+        await ctx.room.local_participant.publish_data(data, reliable=True, topic=topic)
     except PublishDataError:
-        # Closed between our check and the publish — silent, not a bug.
+        # Room closed between our check and the publish — not a bug.
         pass
     except Exception:
-        logger.exception("failed to publish metrics snapshot")
+        logger.exception("publish failed topic=%s", topic)
 
 
 @server.rtc_session()
@@ -138,7 +126,7 @@ async def entrypoint(ctx: JobContext) -> None:
     settings = CoachSettings()
     metrics_builder = MetricsSnapshotBuilder(
         settings=settings,
-        publish=lambda snap: _publish_metrics(ctx, snap),
+        publish=lambda snap: _publish_json(ctx, METRICS_TOPIC, snap),
     )
 
     @session.on("user_input_transcribed")
@@ -148,7 +136,9 @@ async def entrypoint(ctx: JobContext) -> None:
         if not text.strip():
             return
         logger.info("transcript is_final=%s text=%r", is_final, text[:80])
-        _publish_transcript(ctx, text=text, is_final=is_final)
+        asyncio.create_task(
+            _publish_json(ctx, TRANSCRIPT_TOPIC, {"text": text, "is_final": is_final})
+        )
 
         if is_final:
             t_ms = int(time.time() * 1000)

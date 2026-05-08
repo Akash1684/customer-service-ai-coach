@@ -8,8 +8,6 @@ unit-tested without the model or the LiveKit runtime.
 
 from __future__ import annotations
 
-from collections.abc import Iterable
-
 import numpy as np
 
 
@@ -27,61 +25,25 @@ class AudioRingBuffer:
         if window_seconds <= 0:
             raise ValueError("window_seconds must be positive")
 
-        self._sample_rate = sample_rate
         self._capacity = int(sample_rate * window_seconds)
         self._buf = np.zeros(self._capacity, dtype=np.int16)
         self._size = 0  # number of valid samples in _buf
-        self._total_seen = 0  # cumulative samples ever appended
-
-    @property
-    def sample_rate(self) -> int:
-        return self._sample_rate
-
-    @property
-    def capacity_samples(self) -> int:
-        return self._capacity
 
     @property
     def size(self) -> int:
         """Number of samples currently held (0 .. capacity)."""
         return self._size
 
-    @property
-    def duration_s(self) -> float:
-        """Duration of audio currently held, in seconds."""
-        return self._size / self._sample_rate
-
-    @property
-    def total_seen_samples(self) -> int:
-        """Cumulative samples ever appended, even after eviction."""
-        return self._total_seen
-
-    def append(self, samples: Iterable[int] | np.ndarray) -> None:
-        """Append int16 PCM samples; oldest samples are evicted if at capacity."""
-        arr = np.asarray(samples, dtype=np.int16)
-        if arr.ndim != 1:
-            arr = arr.reshape(-1)
+    def append(self, samples: np.ndarray) -> None:
+        """Append int16 PCM samples; oldest samples are evicted beyond capacity."""
+        arr = np.asarray(samples, dtype=np.int16).reshape(-1)
         if arr.size == 0:
             return
-
-        self._total_seen += arr.size
-
-        if arr.size >= self._capacity:
-            # Take only the tail that fits.
-            self._buf[:] = arr[-self._capacity :]
-            self._size = self._capacity
-            return
-
-        free = self._capacity - self._size
-        if arr.size <= free:
-            self._buf[self._size : self._size + arr.size] = arr
-            self._size += arr.size
-        else:
-            # Shift existing samples left to make room.
-            shift = arr.size - free
-            self._buf[: self._size - shift] = self._buf[shift : self._size]
-            self._buf[self._size - shift : self._capacity] = arr
-            self._size = self._capacity
+        # Combine live samples + new, keep only the tail that fits in the window.
+        combined = np.concatenate([self._buf[: self._size], arr])
+        tail = combined[-self._capacity :]
+        self._size = tail.size
+        self._buf[: self._size] = tail
 
     def snapshot_float32(self) -> np.ndarray:
         """Return the currently-held samples as float32 in [-1.0, 1.0].
