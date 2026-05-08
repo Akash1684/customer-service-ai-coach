@@ -24,7 +24,31 @@ the MetricsBar tiles visibly change during the recording.
 Read each act as one natural-sounding sentence. **Pause ~2 seconds between
 acts** so Silero VAD finalizes each utterance into its own transcript.
 
+### One-sentence version *(~15 s — fastest end-to-end proof)*
+
+If you just need to show all three detectors firing in a single breath,
+read this one sentence and stop. It exercises every detector category
+without needing the 4-act structure.
+
+> "Well, um, actually, I don't know what's going on, it's basically not
+> my fault, like, honestly I don't care what the policy says — whatever,
+> you should have sorted this out yourself, but, uh, thank you for being
+> patient, I'm really happy to help."
+
+**Expected after this sentence:**
+
+| Tile | Value |
+|---|---|
+| Fillers | **~6** (`well`, `um`, `actually`, `basically`, `like`, `uh`) |
+| Prohibited | **5** (red, last: `"you should have"`) — hits: `i don't know`, `not my fault`, `i don't care`, `whatever`, `you should have` |
+| Sentiment | **Negative** or **Neutral** (the positive tail partially offsets the negative middle) |
+
+If you want a longer demo that also shows **sentiment flipping back to
+Positive over time**, use the four-act version below instead.
+
 ---
+
+### Four-act version *(~60 s — fuller demo with sentiment recovery)*
 
 ### Act 1 — cheerful opening *(~10 s)*
 
