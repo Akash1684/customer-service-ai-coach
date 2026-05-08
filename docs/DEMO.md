@@ -30,18 +30,24 @@ If you just need to show all three detectors firing in a single breath,
 read this one sentence and stop. It exercises every detector category
 without needing the 4-act structure.
 
-> "Well, um, actually, I don't know what's going on, it's basically not
-> my fault, like, honestly I don't care what the policy says — whatever,
-> you should have sorted this out yourself, but, uh, thank you for being
-> patient, I'm really happy to help."
+> "Honestly, um, actually this is ridiculous, like, I don't know why
+> this is happening, basically I don't care what the policy says, it's
+> not my job, whatever, you should have checked this yourself, uh, I
+> hate having to deal with this."
 
-**Expected after this sentence:**
+**Expected after this sentence** (scored against VADER, compound ≈ −0.52):
 
 | Tile | Value |
 |---|---|
-| Fillers | **~6** (`well`, `um`, `actually`, `basically`, `like`, `uh`) |
-| Prohibited | **5** (red, last: `"you should have"`) — hits: `i don't know`, `not my fault`, `i don't care`, `whatever`, `you should have` |
-| Sentiment | **Negative** or **Neutral** (the positive tail partially offsets the negative middle) |
+| Fillers | **5** (`um`, `actually`, `like`, `basically`, `uh`) |
+| Prohibited | **5** (red, last: `"you should have"`) — hits: `i don't know`, `i don't care`, `not my job`, `whatever`, `you should have` |
+| Sentiment | **Negative** (red pill) |
+
+> **Why the extra `"ridiculous"` / `"hate"`?** VADER measures word-level
+> valence, not stance. Phrases like `"not my fault"` and `"that's not my
+> problem"` actually score *positive* in VADER (the `not` negates `fault`
+> / `problem`). The demo needs genuinely negative words — `"ridiculous"`,
+> `"hate"`, `"frustrating"` — to land the Sentiment tile in Negative.
 
 If you want a longer demo that also shows **sentiment flipping back to
 Positive over time**, use the four-act version below instead.
@@ -82,9 +88,9 @@ Positive over time**, use the four-act version below instead.
 
 ### Act 3 — dismissive meltdown *(~15 s)*
 
-> "Honestly, I don't care what the policy says. Whatever. That's not my
-> problem. You should have checked before calling. It's not my job to fix
-> this."
+> "Honestly this is ridiculous. I don't care what the policy says.
+> Whatever. That's not my problem. You should have checked before
+> calling. It's not my job. I hate these pointless excuses."
 
 **Expected after Act 3**
 
@@ -139,5 +145,5 @@ Act 3 out before Act 4 lands.
 |---|---|
 | Nothing appears for >6 s | Tab not focused, or the agent hasn't printed `agent ready` yet |
 | Transcripts stop mid-session | Tab went to background, or the LiveKit WS dropped (DevTools → Network → WS) |
-| Sentiment stays Neutral throughout | Rolling 20 s window still averaging out the negatives — add a longer Act 3 |
+| Sentiment stays Neutral throughout | Dismissive prohibited phrases (`"not my fault"`, `"whatever"`, etc.) are lexically Neutral or even Positive to VADER. You need explicit negative words like `"ridiculous"`, `"hate"`, `"frustrating"`, `"awful"` — the revised script includes these |
 | Prohibited doesn't trip | Whisper transcribed something different; check agent log for the actual transcribed text |
