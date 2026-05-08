@@ -12,7 +12,7 @@ for a coach — both are "tone not worth flagging" — so the two were merged
 into a single ``Neutral`` tag.
 
 Emits ``sentiment_dip`` events only on *downgrades* (tone becoming more
-negative) so the nudger can highlight moments the rep's tone slipped rather
+negative) so consumers can highlight moments the rep's tone slipped rather
 than firing on every minor fluctuation.
 """
 

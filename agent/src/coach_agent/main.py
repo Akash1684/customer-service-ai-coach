@@ -30,13 +30,11 @@ from livekit.rtc.participant import PublishDataError
 from coach_agent.config import CoachSettings
 from coach_agent.pipeline import MetricsSnapshotBuilder
 from coach_agent.stt import LocalFasterWhisperStream, LocalFasterWhisperSTT
-from coach_agent.transport.liveness import LIVENESS_TOPIC, HeartbeatSource
 
 load_dotenv(".env.local")
 
 logger = logging.getLogger("coach_agent.main")
 
-HEARTBEAT_INTERVAL_S = 2.0
 TRANSCRIPT_TOPIC = "transcript"
 METRICS_TOPIC = "metrics"
 
@@ -128,16 +126,16 @@ async def entrypoint(ctx: JobContext) -> None:
     logger.info("coach-agent joining room=%s", ctx.room.name)
     await ctx.connect()
 
-    # AgentSession with Silero VAD — Silero is the only voice-activity
-    # detector in the system; the STT stream does no VAD of its own.
+    # Silero is the only voice-activity detector in the system; the STT
+    # stream does no VAD of its own.
     stt = LocalFasterWhisperSTT()
     vad = silero.VAD.load()
     session = AgentSession(stt=stt, vad=vad)
     agent = CoachAgent()
 
-    # Step 5: shared detector pipeline. The builder owns all four P0
-    # detectors and rate-limits the metrics publish to ~250 ms trailing.
-    settings = CoachSettings.defaults()
+    # The builder owns all four detectors and rate-limits metrics publish
+    # to ~250 ms trailing-edge.
+    settings = CoachSettings()
     metrics_builder = MetricsSnapshotBuilder(
         settings=settings,
         publish=lambda snap: _publish_metrics(ctx, snap),
@@ -154,22 +152,16 @@ async def entrypoint(ctx: JobContext) -> None:
 
         if is_final:
             t_ms = int(time.time() * 1000)
-            events = metrics_builder.on_final(text, t_ms=t_ms)
-            if events:
-                logger.info(
-                    "detector events: %s",
-                    [f"{e.kind}:{e.detail}" for e in events],
-                )
+            metrics_builder.on_final(text, t_ms=t_ms)
 
     @session.on("user_state_changed")
     def on_user_state(event: Any) -> None:
         """Flush the STT stream when Silero says the user stopped speaking.
 
-        This is the finalization driver. Every `speaking → listening` (or
-        `speaking → away`) transition emits a `_FlushSentinel` into the
-        current stream's input channel; the stream then does one last
-        Whisper pass and emits `FINAL_TRANSCRIPT`. Interim updates continue
-        to fire on the 500 ms cadence inside the stream itself.
+        Every `speaking → listening/away` transition emits a `_FlushSentinel`
+        into the current stream's input channel; the stream then does one
+        last Whisper pass and emits `FINAL_TRANSCRIPT`. Interim updates
+        continue to fire on the 500 ms cadence inside the stream itself.
         """
         old_state = getattr(event, "old_state", None)
         new_state = getattr(event, "new_state", None)
@@ -180,31 +172,16 @@ async def entrypoint(ctx: JobContext) -> None:
             return
         try:
             stream.flush()
-            logger.info(
-                "flushed STT stream on user_state %s->%s", old_state, new_state
-            )
         except Exception:
             logger.exception("stream.flush() failed on user_state_changed")
 
     await session.start(agent=agent, room=ctx.room)
 
-    # Keep the liveness heartbeat going so the UI can still detect the agent.
-    # Exit the loop as soon as the room closes — otherwise `publish_data`
-    # raises `PublishDataError("engine is closed")` repeatedly, blocking the
-    # entrypoint from returning and forcing the SDK to cancel the job.
-    source = HeartbeatSource()
+    # Block until the room closes. Previously this loop also published a
+    # liveness heartbeat; removed — the UI no longer has a debug pane and
+    # room state is the source of truth.
     while ctx.room.isconnected():
-        hb = source.next()
-        try:
-            await ctx.room.local_participant.publish_data(
-                hb.to_bytes(), reliable=True, topic=LIVENESS_TOPIC
-            )
-        except PublishDataError as e:
-            logger.info("room closed during heartbeat publish (%s); exiting loop", e)
-            break
-        except Exception:
-            logger.exception("failed to publish heartbeat seq=%d", hb.seq)
-        await asyncio.sleep(HEARTBEAT_INTERVAL_S)
+        await asyncio.sleep(1.0)
 
     logger.info("coach-agent entrypoint exiting cleanly (room=%s)", ctx.room.name)
 

@@ -1,9 +1,4 @@
-"""Step 1 smoke test — package is importable and exposes a version.
-
-Later steps will add real tests for detectors, pipeline, transport, etc.
-This test intentionally has zero external dependencies beyond stdlib so it
-works even before `livekit-agents` and other heavy deps are installed.
-"""
+"""Smoke test — package is importable and exposes a SemVer version."""
 
 from __future__ import annotations
 

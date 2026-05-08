@@ -6,7 +6,6 @@ Package layout:
 - ``stt/``         — in-process :class:`LocalFasterWhisperSTT` (faster-whisper)
 - ``detectors/``   — filler, pacing, prohibited, and sentiment detectors
 - ``pipeline/``    — :class:`MetricsSnapshotBuilder` (rate-limited publisher)
-- ``transport/``   — data-channel helpers (liveness heartbeat)
 - ``main.py``      — :class:`CoachAgent` + :func:`entrypoint` wiring everything
                      into a LiveKit ``AgentSession``
 

@@ -31,7 +31,7 @@ class PacingDetector:
     """Rolling/cumulative WPM tracker with band transitions.
 
     Emits ``pace_fast`` / ``pace_slow`` events on the transition into a band,
-    not on every update, so Step 8's nudger can respond once per transition.
+    not on every update, so consumers can react once per transition.
     """
 
     def __init__(

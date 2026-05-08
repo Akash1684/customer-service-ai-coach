@@ -40,7 +40,6 @@ Agent → UI:
 |---|---|---|
 | `transcript` | `{ text: string, is_final: bool }` | One per interim (~500 ms) + one final per utterance |
 | `metrics` | [`MetricsSnapshot`](#metricssnapshot) | Trailing-edge ≤ 250 ms after each final transcript |
-| `liveness` | `{ seq: int, t_ms: int, status: "alive" }` | Every 2 s (debug) |
 
 UI → agent: **none yet**. The Settings RPC (`update_settings`) is a Step 7 item.
 
@@ -144,13 +143,12 @@ This eliminates all custom VAD / silence-heuristic code from the STT stream. The
 - **`App.tsx`** — mounts `<LiveKitRoom>` with the dev token from `.env.local`, renders the panes.
 - **`TranscriptPane.tsx`** — subscribes to the `transcript` topic. Shows finals as solid lines, the current partial as italicized draft text, and a pulsing "● Listening…" badge while a partial is active.
 - **`MetricsBar.tsx`** — subscribes to `metrics`. Four tiles: fillers, pacing, prohibited, sentiment. Accent colors flag fast/slow pacing, prohibited hits, and negative sentiment.
-- **`DebugPane.tsx`** — subscribes to `liveness`. Useful for confirming the agent is connected during local dev.
 
 All text-level UI state lives in React components; **nothing** is persisted to `localStorage` yet (Step 7 item).
 
 ## Error handling currently implemented
 
-- **Room disconnect during publish** — liveness + metrics publishers check `ctx.room.isconnected()` before each `publish_data` call and swallow `PublishDataError` on the race. Heartbeat loop exits cleanly on disconnect (pre-fix this caused the SDK to force-cancel the entrypoint after 30 s of retry thrash).
+- **Room disconnect during publish** — the metrics publisher checks `ctx.room.isconnected()` before each `publish_data` call and swallows `PublishDataError` on the race. The entrypoint's idle loop exits cleanly on disconnect so the SDK doesn't force-cancel the job.
 - **Whisper hallucinations on silence** — RMS gate skips transcription; string filter catches what slips through.
 - **Silero over-triggering on short pauses** — handled: the `_FlushSentinel` branch of `_run()` clears the buffer even when Whisper produced no text for that utterance, preventing silence accumulation across many VAD triggers.
 
@@ -189,8 +187,8 @@ react ^18.3.1
 
 ## Testing
 
-- **Python**: 57 unit tests covering ring buffer, Whisper stream (with fake model), hallucination guard, four detectors, metrics builder, liveness, and transport.
-- **TypeScript**: 42 tests covering parse helpers, panes, and the App shell.
+- **Python**: unit tests covering ring buffer, Whisper stream (with fake model), hallucination guard, four detectors, and the metrics builder.
+- **TypeScript**: unit tests covering parse helpers, panes, and the App shell.
 - **Manual E2E**: `agent/tests/e2e_listener.py` (listens for data-channel events) and `agent/tests/e2e_speaker_listener.py` (publishes a WAV + listens, single-participant sanity runner).
 
 ```bash

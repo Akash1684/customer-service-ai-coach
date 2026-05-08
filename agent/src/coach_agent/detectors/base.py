@@ -10,8 +10,8 @@ from typing import Any
 class DetectorEvent:
     """A single coaching signal emitted by a detector.
 
-    Kept intentionally generic so Step 8's NudgeWorker can consume the same
-    stream without each detector having its own event subclass.
+    Detectors return these alongside mutating their own state; today only
+    the `MetricsSnapshotBuilder` consumes them (for logging/debug).
     """
 
     kind: str  # e.g. "filler", "prohibited", "pace_fast", "sentiment_dip"

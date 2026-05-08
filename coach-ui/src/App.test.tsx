@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import App from "./App";
 
 // Stub @livekit/components-react so we don't need a real LiveKit connection
-// in unit tests. The DebugPane is exercised in its own test file.
+// in unit tests.
 vi.mock("@livekit/components-react", () => ({
   LiveKitRoom: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="livekit-room">{children}</div>
@@ -15,7 +15,7 @@ vi.mock("@livekit/components-react", () => ({
 
 vi.mock("@livekit/components-styles", () => ({}));
 
-describe("App (Step 2 smoke test)", () => {
+describe("App", () => {
   beforeEach(() => {
     vi.unstubAllEnvs();
   });

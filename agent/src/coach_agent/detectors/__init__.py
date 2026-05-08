@@ -1,4 +1,4 @@
-"""Coaching detectors — Step 5.
+"""Coaching detectors.
 
 Each detector consumes final transcript segments (plus a monotonic timestamp)
 and contributes state to the next `MetricsSnapshot`. They are intentionally

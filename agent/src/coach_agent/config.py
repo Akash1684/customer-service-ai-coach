@@ -1,7 +1,7 @@
 """Runtime configuration for the coaching detectors and pacing heuristics.
 
-Step 5 ships with a single frozen `CoachSettings.defaults()` object. Step 7
-will wire a `update_settings` RPC that mutates a live instance from the UI.
+Ships a single frozen defaults bundle; instantiate with ``CoachSettings()``.
+A future ``update_settings`` RPC would mutate a live instance from the UI.
 """
 
 from __future__ import annotations
@@ -44,11 +44,7 @@ DEFAULT_PROHIBITED_PHRASES: tuple[str, ...] = (
 
 @dataclass(frozen=True)
 class CoachSettings:
-    """Immutable settings bundle passed to the detector suite.
-
-    All fields have sensible defaults so call sites can simply do
-    `CoachSettings.defaults()`.
-    """
+    """Immutable settings bundle passed to the detector suite."""
 
     filler_words: tuple[str, ...] = DEFAULT_FILLER_WORDS
     prohibited_phrases: tuple[str, ...] = DEFAULT_PROHIBITED_PHRASES
@@ -60,7 +56,3 @@ class CoachSettings:
     # events within this interval is coalesced into a single packet emitted
     # on the trailing edge.
     metrics_publish_interval_s: float = 0.25
-
-    @classmethod
-    def defaults(cls) -> CoachSettings:
-        return cls()

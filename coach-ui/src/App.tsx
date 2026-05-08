@@ -1,18 +1,13 @@
 import { LiveKitRoom, RoomAudioRenderer } from "@livekit/components-react";
 import "@livekit/components-styles";
 
-import DebugPane from "./DebugPane";
 import MetricsBar from "./MetricsBar";
 import TranscriptPane from "./TranscriptPane";
 
 /**
- * App — Step 5 scaffold.
- *
- * Publishes the rep's mic into a local LiveKit room and mounts three panes:
- *  - MetricsBar: live coaching counters (fillers, pacing, prohibited, sentiment)
- *  - TranscriptPane: live partial + final transcripts from the agent's
- *    Whisper STT
- *  - DebugPane: agent liveness heartbeat (useful when debugging)
+ * App — mounts a LiveKit room that publishes the rep's mic, and renders
+ * the two live panes: MetricsBar (coaching counters) and TranscriptPane
+ * (partial + final transcripts from the agent's Whisper STT).
  */
 export default function App() {
   const url = import.meta.env.VITE_LIVEKIT_URL as string | undefined;
@@ -22,7 +17,7 @@ export default function App() {
     return (
       <main style={pageStyle}>
         <div style={cardStyle}>
-          <h1 style={{ margin: 0 }}>Customer Service AI Coach — v0</h1>
+          <h1 style={{ margin: 0 }}>Customer Service AI Coach</h1>
           <p style={{ marginTop: "1rem" }}>
             Missing <code>VITE_LIVEKIT_URL</code> or <code>VITE_LIVEKIT_TOKEN</code>.
           </p>
@@ -39,10 +34,10 @@ export default function App() {
   return (
     <main style={pageStyle}>
       <div style={cardStyle}>
-        <h1 style={{ margin: 0 }}>Customer Service AI Coach — v0</h1>
+        <h1 style={{ margin: 0 }}>Customer Service AI Coach</h1>
         <p style={{ marginTop: "0.5rem", opacity: 0.7 }}>
-          Step 5 scaffold. Mic publishes into the local LiveKit room; the agent transcribes
-          with <code>faster-whisper</code> and runs tight-lane coaching detectors.
+          Speak into your mic. The agent transcribes with <code>faster-whisper</code> and
+          runs live coaching detectors.
         </p>
         <LiveKitRoom
           token={token}
@@ -56,7 +51,6 @@ export default function App() {
           <RoomAudioRenderer />
           <MetricsBar />
           <TranscriptPane />
-          <DebugPane />
         </LiveKitRoom>
       </div>
     </main>

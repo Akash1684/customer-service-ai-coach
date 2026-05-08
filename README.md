@@ -24,7 +24,7 @@ Speak into your microphone and receive **live coaching feedback** as you talk: a
 | Markdown session report | ⏭ Step 9 |
 | Dead-air detection + endpoint polish | ⏭ Step 6 / 10 |
 
-See [`docs/AS-BUILT.md`](./docs/AS-BUILT.md) for the **implemented** architecture (what's actually in the code), and [`docs/planning/`](./docs/planning/) for the original planning record (rough idea → Q&A → research → design → plan).
+See [`docs/AS-BUILT.md`](./docs/AS-BUILT.md) for the **implemented** architecture (what's actually in the code), [`docs/CODE-TOUR.md`](./docs/CODE-TOUR.md) for a 1-page walk through the agent code, and [`docs/planning/`](./docs/planning/) for the original planning record (rough idea → Q&A → research → design → plan).
 
 ## Prerequisites
 
@@ -98,15 +98,13 @@ customer-service-ai-coach/
 │   │   ├── config.py                   # CoachSettings (defaults)
 │   │   ├── stt/local_whisper.py        # In-process faster-whisper STT
 │   │   ├── detectors/                  # filler · pacing · prohibited · sentiment
-│   │   ├── pipeline/metrics.py         # MetricsSnapshotBuilder (rate-limited)
-│   │   └── transport/liveness.py       # Agent heartbeat (debug channel)
-│   └── tests/                          # 57 unit tests, 2 manual E2E scripts
+│   │   └── pipeline/metrics.py         # MetricsSnapshotBuilder (rate-limited)
+│   └── tests/                          # 51 unit tests, 2 manual E2E scripts
 ├── coach-ui/                           # React + Vite frontend
 │   └── src/
 │       ├── App.tsx                     # Mount LiveKitRoom + panes
 │       ├── TranscriptPane.tsx          # Live partial + final transcripts
-│       ├── MetricsBar.tsx              # Four-tile live metrics
-│       └── DebugPane.tsx               # Agent heartbeat (debug)
+│       └── MetricsBar.tsx              # Four-tile live metrics
 ├── scripts/                            # setup.sh, start.sh
 ├── docs/
 │   ├── AS-BUILT.md                     # Current architecture (what shipped)
@@ -118,7 +116,7 @@ customer-service-ai-coach/
 ## Tests
 
 ```bash
-make test            # Python (57) + TypeScript (42)
+make test            # Python (51) + TypeScript (29)
 make test-agent      # Python only
 make test-ui         # TypeScript only
 ```
