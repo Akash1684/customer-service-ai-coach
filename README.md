@@ -34,12 +34,11 @@ See [`docs/AS-BUILT.md`](./docs/AS-BUILT.md) for the **implemented** architectur
 | Node ≥ 20 | UI build (Vite) |
 | `uv` ([install](https://docs.astral.sh/uv/getting-started/installation/)) | Fast Python package manager (fallback: `pip` + `venv`) |
 | `livekit-server` ([install](https://docs.livekit.io/home/self-hosting/local/)) | Local WebRTC SFU |
-| `lk` ([LiveKit CLI](https://docs.livekit.io/reference/developer-tools/livekit-cli/)) | Dev-token generation |
 
 **One-time install on macOS:**
 
 ```bash
-brew install livekit livekit-cli
+brew install livekit
 curl -LsSf https://astral.sh/uv/install.sh | sh   # or: pip install --user uv
 ```
 
@@ -71,19 +70,16 @@ npm --prefix coach-ui run dev
 
 Generate a dev token once (long-lived, 30 days) and drop it in `coach-ui/.env.local`:
 
-```bash
-lk token create \
-  --api-key devkey --api-secret secret \
-  --join --room coach-room --identity rep-local \
-  --valid-for 720h --token-only
-```
-
 ```
 # coach-ui/.env.local
 VITE_LIVEKIT_URL=ws://127.0.0.1:7880
-VITE_LIVEKIT_TOKEN=<paste jwt here>
 VITE_LIVEKIT_ROOM=coach-room
 ```
+
+The UI mints a fresh LiveKit access token on every page load using the
+well-known dev credentials (`devkey` / `secret`) with a random participant
+identity, so page refreshes don't collide with the previous session. No
+static `VITE_LIVEKIT_TOKEN` needed.
 
 Visit <http://localhost:5173>, grant mic permission, and start talking.
 

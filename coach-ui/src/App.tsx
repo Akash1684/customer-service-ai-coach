@@ -1,31 +1,75 @@
+import { useEffect, useState } from "react";
 import { LiveKitRoom, RoomAudioRenderer } from "@livekit/components-react";
 import "@livekit/components-styles";
 
 import MetricsBar from "./MetricsBar";
 import TranscriptPane from "./TranscriptPane";
+import { mintToken } from "./token";
 
 /**
  * App — mounts a LiveKit room that publishes the rep's mic, and renders
  * the two live panes: MetricsBar (coaching counters) and TranscriptPane
  * (partial + final transcripts from the agent's Whisper STT).
+ *
+ * A fresh token is minted on every page load with a random participant
+ * identity so refreshes don't collide with the previous session. See
+ * `token.ts`.
  */
 export default function App() {
   const url = import.meta.env.VITE_LIVEKIT_URL as string | undefined;
-  const token = import.meta.env.VITE_LIVEKIT_TOKEN as string | undefined;
+  const [token, setToken] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!url || !token) {
+  useEffect(() => {
+    let cancelled = false;
+    mintToken()
+      .then((t) => {
+        if (!cancelled) setToken(t);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(e instanceof Error ? e.message : String(e));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (!url) {
     return (
       <main style={pageStyle}>
         <div style={cardStyle}>
           <h1 style={{ margin: 0 }}>Customer Service AI Coach</h1>
           <p style={{ marginTop: "1rem" }}>
-            Missing <code>VITE_LIVEKIT_URL</code> or <code>VITE_LIVEKIT_TOKEN</code>.
+            Missing <code>VITE_LIVEKIT_URL</code>.
           </p>
           <p style={{ opacity: 0.7 }}>
-            Copy <code>.env.local.example</code> to <code>.env.local</code> and generate a dev
-            token with <code>lk token create --api-key devkey --api-secret secret --join --room
-            coach-room --identity rep-local --valid-for 720h --token-only</code>.
+            Copy <code>.env.local.example</code> to <code>.env.local</code> and set the LiveKit
+            server URL.
           </p>
+        </div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main style={pageStyle}>
+        <div style={cardStyle}>
+          <h1 style={{ margin: 0 }}>Customer Service AI Coach</h1>
+          <p style={{ marginTop: "1rem", color: "#ff8888" }}>
+            Failed to mint LiveKit token: {error}
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!token) {
+    return (
+      <main style={pageStyle}>
+        <div style={cardStyle}>
+          <h1 style={{ margin: 0 }}>Customer Service AI Coach</h1>
+          <p style={{ marginTop: "1rem", opacity: 0.7 }}>Connecting…</p>
         </div>
       </main>
     );
