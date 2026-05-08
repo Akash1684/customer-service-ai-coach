@@ -8,33 +8,12 @@ they speak**. No scheduled reviews, no cloud, no recordings.
 
 ### The cost customer service operations already carry
 
-**Poor rep performance drives revenue out the door.**
+Replacing one call-center agent costs $10,000 to $25,000 in hiring,
+training, and ramp. Full productivity takes 90 days. Companies with
+below-average customer experience scores show -2.3 percent annual
+revenue growth against 8.1 percent for above-average CX companies.
 
-- US call center agent attrition runs 30 to 45 percent annually, 2 to 5
-  times the rate for other US occupations. Some sectors hit 55 to 60
-  percent. [BLS data, RethinkCX 2026 playbook]
-- Companies with below-average customer experience scores show -2.3
-  percent annual revenue growth. Above-average CX companies grow 8.1
-  percent. [Forrester CX Index, cited by Blippr CX Research]
-- Industry average annual customer churn is 20 to 30 percent, with poor
-  service the leading driver. [Ringly Customer Churn Statistics, 2026]
-- Retaining an existing customer costs 5 to 25 times less than acquiring
-  a new one. A 5 percent retention improvement increases profit 25 to 95
-  percent. [Bain classic retention research]
-
-**Training a rep is expensive and slow.**
-
-- Replacing one call center agent costs $10,000 to $25,000 in direct
-  hiring, onboarding, and ramp expenses. Total impact, including lost
-  productivity, reaches $46,000 per agent. [SHRM 2025 Benchmarking,
-  Insignia Resource 2026]
-- New-agent training costs $3,000 to $10,000 per rep before the first
-  live call. [HiveDesk Call Center Labor Cost Management]
-- Average ramp time to full productivity is 90 days. Companies pay
-  full salary during this window against limited call output.
-  [Symtrain, HiveDesk]
-- Corporate training delivery costs $123 per instructor hour, at 17.4
-  hours per employee per year. [ATD 2024 State of the Industry Report]
+Sources: SHRM 2025 Benchmarking, Symtrain, Forrester CX Index.
 
 ### What reps get today, and why it is not enough
 
