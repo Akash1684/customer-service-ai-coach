@@ -25,6 +25,7 @@ Everything runs on the rep's laptop. No cloud calls, no authentication, no persi
 ├── research/
 │   ├── livekit-agents-sdk.md              # SDK deep dive (268 lines)
 │   ├── livekit-local-setup.md             # Minimal local setup plan (288 lines)
+│   ├── webrtc-stack-comparison.md         # LiveKit vs Pion/Pipecat/MediaSoup/Janus
 │   ├── local-asr.md                       # faster-whisper in-process (195 lines)
 │   ├── local-llm.md                       # Ollama for the relaxed lane (233 lines)
 │   ├── detectors.md                       # Tight-lane signals (250 lines)
