@@ -14,8 +14,10 @@ the MetricsBar tiles visibly change during the recording.
    ```
 2. Visit <http://localhost:5173>, grant mic permission, **keep the tab focused**
    (background tabs throttle WebRTC).
-3. Wait for the agent terminal to print `agent ready` (it pre-loads
-   `faster-whisper` at startup — ~4 s one-time, then all sessions are hot).
+3. Visit <http://localhost:5173>, grant mic permission, **keep the tab focused**
+   (background tabs throttle WebRTC). The first utterance after agent
+   startup takes ~4 s (model loads lazily into the worker process); every
+   subsequent utterance is hot.
 4. Start your screen recorder. On macOS: `⌘5` → Record Entire Screen →
    Options → Microphone: Built-in.
 

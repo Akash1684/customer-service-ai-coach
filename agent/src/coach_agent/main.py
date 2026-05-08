@@ -185,11 +185,10 @@ if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s"
     )
-    # Pre-load the faster-whisper model BEFORE starting the worker so the
-    # first user utterance doesn't eat a ~4-5 s cold-start hit. This is a
-    # synchronous load; `uv run src/coach_agent/main.py dev` stays blocked
-    # here until the model is in memory, then `agent ready` prints.
-    logger.info("pre-loading faster-whisper (%s)…", _STT.model)
-    _STT.prewarm()
-    logger.info("agent ready — open the UI and speak")
+    # NOTE: a previous revision pre-warmed _STT here before cli.run_app().
+    # That broke worker dispatch — loading CTranslate2/faster-whisper spawns
+    # threads in the parent process, and the LiveKit SDK's fork of the
+    # worker child inherits broken thread state, so entrypoint() never
+    # fires for any room join. Model now loads lazily in the worker
+    # subprocess on the first STT stream() call (~4 s one-time).
     cli.run_app(server)
