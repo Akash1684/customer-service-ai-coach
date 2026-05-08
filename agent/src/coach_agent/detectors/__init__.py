@@ -7,7 +7,7 @@ tiny and pure so they test cleanly in isolation.
 - `FillerDetector`   — counts filler words per configured list
 - `PacingDetector`   — rolling + cumulative words-per-minute (WPM)
 - `ProhibitedDetector` — exact + fuzzy match against a phrase list
-- `SentimentDetector`  — VADER-based tone tag (Positive / Neutral / Flat / Negative)
+- `SentimentDetector`  — VADER-based tone tag (Positive / Neutral / Negative)
 """
 
 from .base import DetectorEvent

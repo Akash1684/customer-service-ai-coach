@@ -56,7 +56,7 @@ UI → agent: **none yet**. The Settings RPC (`update_settings`) is a Step 7 ite
   "pacing_band": "ok",          // "slow" | "ok" | "fast"
   "prohibited_hits": 1,
   "prohibited_last": "calm down",
-  "sentiment_tag": "Neutral",   // "Positive" | "Neutral" | "Flat" | "Negative"
+  "sentiment_tag": "Neutral",   // "Positive" | "Neutral" | "Negative"
   "sentiment_score": 0.12
 }
 ```

@@ -3,9 +3,13 @@
 Accumulates final transcript segments in a rolling window and reports a tag:
 
 - ``Positive``  — compound ≥ 0.30
-- ``Neutral``   — 0.05 ≤ compound < 0.30
-- ``Flat``      — -0.05 ≤ compound < 0.05
+- ``Neutral``   — -0.05 ≤ compound < 0.30  (covers factual / flat-tone speech)
 - ``Negative``  — compound < -0.05
+
+An earlier revision split the middle band into ``Neutral`` (mildly positive)
+and ``Flat`` (no lexical signal at all). The distinction wasn't actionable
+for a coach — both are "tone not worth flagging" — so the two were merged
+into a single ``Neutral`` tag.
 
 Emits ``sentiment_dip`` events only on *downgrades* (tone becoming more
 negative) so the nudger can highlight moments the rep's tone slipped rather
@@ -21,7 +25,7 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 from .base import DetectorEvent
 
-_TAG_ORDER = ("Negative", "Flat", "Neutral", "Positive")
+_TAG_ORDER = ("Negative", "Neutral", "Positive")
 _TAG_INDEX = {t: i for i, t in enumerate(_TAG_ORDER)}
 
 
@@ -34,10 +38,8 @@ class _Segment:
 def _classify(compound: float) -> str:
     if compound >= 0.30:
         return "Positive"
-    if compound >= 0.05:
-        return "Neutral"
     if compound >= -0.05:
-        return "Flat"
+        return "Neutral"
     return "Negative"
 
 
@@ -46,7 +48,7 @@ class SentimentDetector:
         self._analyzer = SentimentIntensityAnalyzer()
         self._window_ms = int(window_s * 1000)
         self._segments: deque[_Segment] = deque()
-        self._current_tag: str = "Flat"
+        self._current_tag: str = "Neutral"
         self._last_compound: float = 0.0
 
     @property
@@ -61,7 +63,7 @@ class SentimentDetector:
 
     def reset(self) -> None:
         self._segments.clear()
-        self._current_tag = "Flat"
+        self._current_tag = "Neutral"
         self._last_compound = 0.0
 
     def on_final(self, text: str, t_ms: int) -> list[DetectorEvent]:

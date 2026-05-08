@@ -9,7 +9,7 @@
 export const METRICS_TOPIC = "metrics";
 
 export type PacingBand = "slow" | "ok" | "fast";
-export type SentimentTag = "Positive" | "Neutral" | "Flat" | "Negative";
+export type SentimentTag = "Positive" | "Neutral" | "Negative";
 
 export interface MetricsSnapshot {
   t_ms: number;
@@ -33,7 +33,7 @@ export const EMPTY_METRICS: MetricsSnapshot = {
   pacing_band: "ok",
   prohibited_hits: 0,
   prohibited_last: null,
-  sentiment_tag: "Flat",
+  sentiment_tag: "Neutral",
   sentiment_score: 0,
 };
 
@@ -53,7 +53,7 @@ function isPacingBand(v: unknown): v is PacingBand {
 }
 
 function isSentimentTag(v: unknown): v is SentimentTag {
-  return v === "Positive" || v === "Neutral" || v === "Flat" || v === "Negative";
+  return v === "Positive" || v === "Neutral" || v === "Negative";
 }
 
 function isMetricsSnapshot(v: unknown): v is MetricsSnapshot {

@@ -19,11 +19,12 @@ def test_negative_text_produces_negative_tag():
     assert s.compound() < -0.05
 
 
-def test_flat_text_produces_flat_or_neutral_tag():
+def test_flat_text_produces_neutral_tag():
     s = SentimentDetector()
     s.on_final("The account number is 1234567890.", t_ms=1)
-    # Flat or Neutral — either is acceptable for factual text.
-    assert s.tag() in {"Flat", "Neutral"}
+    # Lexically-blank factual text lives in the Neutral band
+    # (the former "Flat" band was merged into Neutral).
+    assert s.tag() == "Neutral"
 
 
 def test_dip_event_fires_only_on_downgrade():
@@ -67,9 +68,9 @@ def test_window_ages_out_old_text():
     assert s.tag() == "Negative"
 
 
-def test_reset_returns_to_flat():
+def test_reset_returns_to_neutral():
     s = SentimentDetector()
     s.on_final("Wonderful!", t_ms=1)
     s.reset()
-    assert s.tag() == "Flat"
+    assert s.tag() == "Neutral"
     assert s.compound() == 0.0

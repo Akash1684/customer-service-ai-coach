@@ -24,7 +24,7 @@ function snap(overrides: Partial<MetricsSnapshot> = {}): MetricsSnapshot {
     pacing_band: "ok",
     prohibited_hits: 0,
     prohibited_last: null,
-    sentiment_tag: "Flat",
+    sentiment_tag: "Neutral",
     sentiment_score: 0,
     ...overrides,
   };
@@ -47,7 +47,7 @@ describe("MetricsBar", () => {
     expect(screen.getByTestId("metric-fillers")).toHaveTextContent("0");
     expect(screen.getByTestId("metric-pacing")).toHaveTextContent("—");
     expect(screen.getByTestId("metric-prohibited")).toHaveTextContent("0");
-    expect(screen.getByTestId("metric-sentiment")).toHaveTextContent("Flat");
+    expect(screen.getByTestId("metric-sentiment")).toHaveTextContent("Neutral");
   });
 
   it("reflects incoming snapshot values", () => {
