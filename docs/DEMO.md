@@ -14,8 +14,8 @@ the MetricsBar tiles visibly change during the recording.
    ```
 2. Visit <http://localhost:5173>, grant mic permission, **keep the tab focused**
    (background tabs throttle WebRTC).
-3. Wait ~4-5 seconds after the page loads — the first utterance triggers
-   `faster-whisper`'s lazy model load. Don't speak immediately.
+3. Wait for the agent terminal to print `agent ready` (it pre-loads
+   `faster-whisper` at startup — ~4 s one-time, then all sessions are hot).
 4. Start your screen recorder. On macOS: `⌘5` → Record Entire Screen →
    Options → Microphone: Built-in.
 
@@ -103,8 +103,6 @@ Act 3 out before Act 4 lands.
   disconnected.
 - **Short pauses between acts.** 1-2 seconds lets Silero VAD trigger the
   stream flush so each act becomes its own final transcript.
-- **Whisper warmup.** The first final transcript lags by ~3-4 seconds the
-  first time. Subsequent finals are ~0.5-1 s after you finish speaking.
 - **Fuzzy matcher has your back.** If Whisper mis-hears `"i don't know"`
   as `"i dont know"` or `"I don know"`, `rapidfuzz.partial_ratio ≥ 88`
   still fires the prohibited detector.
@@ -115,7 +113,7 @@ Act 3 out before Act 4 lands.
 
 | Symptom | Likely cause |
 |---|---|
-| Nothing appears for >6 s | Tab not focused, or Whisper still loading |
+| Nothing appears for >6 s | Tab not focused, or the agent hasn't printed `agent ready` yet |
 | Transcripts stop mid-session | Tab went to background, or the LiveKit WS dropped (DevTools → Network → WS) |
 | Sentiment stays Neutral throughout | Rolling 20 s window still averaging out the negatives — add a longer Act 3 |
 | Prohibited doesn't trip | Whisper transcribed something different; check agent log for the actual transcribed text |

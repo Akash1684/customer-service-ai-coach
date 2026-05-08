@@ -38,6 +38,12 @@ logger = logging.getLogger("coach_agent.main")
 TRANSCRIPT_TOPIC = "transcript"
 METRICS_TOPIC = "metrics"
 
+# Shared across all sessions so the faster-whisper model loads exactly
+# once (at worker-process startup via `prewarm()` below), not on the
+# first user utterance. Without sharing, each session pays a ~4-5 s
+# cold-start hit while `base.en` weights (~140 MB) page into memory.
+_STT = LocalFasterWhisperSTT()
+
 server = AgentServer()
 
 
@@ -116,9 +122,8 @@ async def entrypoint(ctx: JobContext) -> None:
 
     # Silero is the only voice-activity detector in the system; the STT
     # stream does no VAD of its own.
-    stt = LocalFasterWhisperSTT()
     vad = silero.VAD.load()
-    session = AgentSession(stt=stt, vad=vad)
+    session = AgentSession(stt=_STT, vad=vad)
     agent = CoachAgent()
 
     # The builder owns all four detectors and rate-limits metrics publish
@@ -180,4 +185,11 @@ if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s"
     )
+    # Pre-load the faster-whisper model BEFORE starting the worker so the
+    # first user utterance doesn't eat a ~4-5 s cold-start hit. This is a
+    # synchronous load; `uv run src/coach_agent/main.py dev` stays blocked
+    # here until the model is in memory, then `agent ready` prints.
+    logger.info("pre-loading faster-whisper (%s)…", _STT.model)
+    _STT.prewarm()
+    logger.info("agent ready — open the UI and speak")
     cli.run_app(server)
