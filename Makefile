@@ -19,7 +19,7 @@ test: test-agent test-ui
 
 test-agent:
 	@echo "=== Agent (Python) smoke tests ==="
-	cd agent && PYTHONPATH=src python3 -m pytest tests/ -q
+	cd agent && uv run pytest tests/ -q
 
 test-ui:
 	@echo "=== UI (TypeScript) smoke tests ==="

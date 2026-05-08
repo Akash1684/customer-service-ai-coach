@@ -1,22 +1,11 @@
 """Speech-to-text — local `faster-whisper` in-process implementation.
 
-Step 3: `LocalFasterWhisperSTT` subclasses the LiveKit Agents `STT` so the
-SDK's auto-resampling feeds the stream 16 kHz mono PCM, and
-`LocalFasterWhisperStream` runs `faster-whisper` on a rolling window to emit
-interim transcripts about every 400 ms. Finalization is driven by the
-LiveKit flush sentinel (Step 6 will drive finalization from Silero VAD).
+Exposes the two classes the agent needs: the `STT` subclass
+(:class:`LocalFasterWhisperSTT`) and its streaming recognizer
+(:class:`LocalFasterWhisperStream`). The ring buffer and per-module
+constants live in submodules and are imported directly when needed.
 """
 
-from .local_whisper import (
-    DEFAULT_MODEL_SIZE,
-    LocalFasterWhisperSTT,
-    LocalFasterWhisperStream,
-)
-from .ring_buffer import AudioRingBuffer
+from .local_whisper import LocalFasterWhisperStream, LocalFasterWhisperSTT
 
-__all__ = [
-    "DEFAULT_MODEL_SIZE",
-    "LocalFasterWhisperSTT",
-    "LocalFasterWhisperStream",
-    "AudioRingBuffer",
-]
+__all__ = ["LocalFasterWhisperSTT", "LocalFasterWhisperStream"]

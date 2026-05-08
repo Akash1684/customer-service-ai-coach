@@ -6,7 +6,7 @@ will wire a `update_settings` RPC that mutates a live instance from the UI.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 # Tuned for North-American customer-service speech. Baseline reading pace is
 # ~150 wpm; anything slower sounds tentative, anything faster sounds rushed.
@@ -62,5 +62,5 @@ class CoachSettings:
     metrics_publish_interval_s: float = 0.25
 
     @classmethod
-    def defaults(cls) -> "CoachSettings":
+    def defaults(cls) -> CoachSettings:
         return cls()

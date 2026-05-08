@@ -19,9 +19,9 @@ from livekit.agents.types import DEFAULT_API_CONNECT_OPTIONS
 
 from coach_agent.stt import local_whisper
 from coach_agent.stt.local_whisper import (
-    LocalFasterWhisperSTT,
-    LocalFasterWhisperStream,
     TARGET_SAMPLE_RATE,
+    LocalFasterWhisperStream,
+    LocalFasterWhisperSTT,
 )
 
 
@@ -37,7 +37,7 @@ class FakeWhisperModel:
         self._transcripts = list(transcripts)
         self.call_count = 0
 
-    def transcribe(self, audio, **kwargs):
+    def transcribe(self, _audio, **_kwargs):
         self.call_count += 1
         idx = min(self.call_count - 1, len(self._transcripts) - 1)
         text = self._transcripts[idx]

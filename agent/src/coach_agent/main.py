@@ -1,20 +1,15 @@
 """Agent entry point.
 
-Step 2: Joined the room and published liveness heartbeats.
-Step 3: Adds an `AgentSession` wired to the local `faster-whisper` STT. Transcripts
-        (partial + final) are published as JSON data packets on the
-        ``transcript`` topic so the UI can render them live.
-Step 5: Adds the tight-lane text detectors (filler, pacing, prohibited,
-        sentiment). Each final transcript feeds a shared
-        ``MetricsSnapshotBuilder``; composed ``MetricsSnapshot`` packets are
-        published on the ``metrics`` topic so the UI can render live counters.
+Joins the rep's LiveKit room, runs `faster-whisper` STT in-process on the
+rep's mic, publishes partial + final transcripts, runs the tight-lane
+detectors, and publishes a rate-limited ``metrics`` snapshot.
 
-Turn detection: delegated entirely to Silero VAD via the SDK. The
-`CoachAgent.stt_node` override captures a handle on the active
+Turn detection is delegated entirely to Silero VAD via the SDK. The
+``CoachAgent.stt_node`` override captures a handle on the active
 ``LocalFasterWhisperStream`` and the ``user_state_changed`` handler flushes
-it the moment Silero reports ``speaking → listening/away``. This removes
-all custom VAD/silence heuristics from the STT stream itself — Whisper
-only transcribes and Silero only detects speech boundaries.
+it the moment Silero reports ``speaking → listening/away``. The STT stream
+itself does no VAD — Whisper only transcribes, Silero only detects speech
+boundaries.
 """
 
 from __future__ import annotations
@@ -34,7 +29,7 @@ from livekit.rtc.participant import PublishDataError
 
 from coach_agent.config import CoachSettings
 from coach_agent.pipeline import MetricsSnapshotBuilder
-from coach_agent.stt import LocalFasterWhisperSTT, LocalFasterWhisperStream
+from coach_agent.stt import LocalFasterWhisperStream, LocalFasterWhisperSTT
 from coach_agent.transport.liveness import LIVENESS_TOPIC, HeartbeatSource
 
 load_dotenv(".env.local")

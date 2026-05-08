@@ -72,7 +72,7 @@ MIN_TRANSCRIBE_SAMPLES = int(TARGET_SAMPLE_RATE * 0.3)  # skip if < 300 ms of au
 SILENCE_RMS_THRESHOLD = 0.002
 
 
-def _transcribe_snapshot(model: "WhisperModel", audio_fp32: np.ndarray) -> str:
+def _transcribe_snapshot(model: WhisperModel, audio_fp32: np.ndarray) -> str:
     """Synchronous transcribe — single-pass Whisper over the current window.
 
     The two-pass (VAD-filter + fallback) strategy was discarded: with Silero
@@ -217,7 +217,7 @@ class LocalFasterWhisperSTT(stt.STT):
     def provider(self) -> str:
         return "local-faster-whisper"
 
-    def _ensure_model(self) -> "WhisperModel":
+    def _ensure_model(self) -> WhisperModel:
         if self._model is None:
             from faster_whisper import WhisperModel
 
@@ -253,7 +253,7 @@ class LocalFasterWhisperSTT(stt.STT):
         *,
         language: NotGivenOr[str] = NOT_GIVEN,
         conn_options: APIConnectOptions = DEFAULT_API_CONNECT_OPTIONS,
-    ) -> "LocalFasterWhisperStream":
+    ) -> LocalFasterWhisperStream:
         model = self._ensure_model()
         return LocalFasterWhisperStream(
             stt=self,
@@ -270,7 +270,7 @@ class LocalFasterWhisperStream(stt.RecognizeStream):
         self,
         *,
         stt: LocalFasterWhisperSTT,
-        model: "WhisperModel",
+        model: WhisperModel,
         language: str,
         conn_options: APIConnectOptions,
     ) -> None:
